@@ -283,7 +283,7 @@ int main() {
 
 		// render
 		// ------
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);//Borro el buffer de la ventana
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
 
 		//creamos las matrices del modelo
@@ -396,5 +396,5 @@ void processInput(GLFWwindow* window){
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	printf("%d", key);
+	printf("%d\n", key);
 }
