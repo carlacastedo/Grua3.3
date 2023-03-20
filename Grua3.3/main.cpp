@@ -3,12 +3,16 @@
 #include <stdio.h>
 #include <math.h> 
 #include <iostream>
-#include "lecturaShader.h"
+#include <lecturaShader.h>
+#include "esfera.h"
+
+
 //transformaciones
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+//equivalencia a radianes
 #define ARADIANES 0.0174
 
 void processInput(GLFWwindow* window);
@@ -20,9 +24,10 @@ const unsigned int SCR_HEIGHT = 800;
 extern GLuint setShaders(const char* nVertix, const char* nFrag);
 GLuint shaderProgram;
 
-unsigned int VAO;
+unsigned int VAOEjes;
 unsigned int VAOCuadrado;
 unsigned int VAOCubo;
+unsigned int VAOEsfera;
 float angulo;
 //esfera esfera1(1.0f, 18, 9);
 
@@ -34,24 +39,197 @@ typedef struct {
 	unsigned int listarender; //VAO
 } objeto;
 
-objeto base = { 0,0,0.15,0,0,.3,.2,0 };
-objeto baseA1 = { 0,0,0.10,0,0,.07,.07,0 };
-objeto base1 = { 0,0,0.10,0,0,.05,.05,.3,0 };
-objeto baseA2 = { 0,0,0.15,0,0,.05,.05,.05,0 };
+objeto base = {0, 0, 0.15, 0, 0, 0.3, 0.2, 0.2, 0};
+objeto baseA1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, 0};
+objeto base1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, 0};
+objeto baseA2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, 0};
+objeto base2 = { 0, 0, 0.11, 0, 0, 0.05, 0.05, 0.3, 0 };
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void dibujaEsfera() {
+	unsigned int VBO;
 
+	glGenVertexArrays(1, &VAOEsfera);
+	glGenBuffers(1, &VBO);
+	// bind the Vertex Array Object first.
+	glBindVertexArray(VAOEsfera);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_esfera), vertices_esfera, GL_STATIC_DRAW);
+
+	//Normales (COLOR)
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	////Textura
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	//glEnableVertexAttribArray(2);
+
+	//Vertices
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &VBO);
+}
 void dibujaEjes() {
+	unsigned int VBO, EBO;
+	// set up vertex data (and buffer(s)) and configure vertex attributes
+	// ------------------------------------------------------------------
+	float vertices[] = {
+		//Vertices          //Colores
+		0.0f, 0.0f, 0.0f,	 1.0f, 1.0f, 1.0f,  // 0
+		.5f, 0.0f, 0.0f,	 1.0f, 0.0f, 0.0f, //x
+		0.0f, .5f, 0.0f,	 0.0f, 1.0f, 0.0f,// y
+		0.0f, .5f, 0.0f,	 0.0f, 0.0f, 1.0f, // z  
+		.5f , .5f, 0.5f,	1.0f, 1.0f, 1.0f // 1,1,1 bueno realmente la mitad
+	};
+	unsigned int indices[] = {  // empieza desde cero
+		0, 1,
+		0, 2,
+		0, 3,
+		0, 4
+	};
 
+	glGenVertexArrays(1, &VAOEjes);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+
+	glBindVertexArray(VAOEjes);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	// position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// position Color
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 };
 
 void dibujaCubo() {
+	unsigned int VBO, EBO;
 
+	float vertices[] = {
+		-0.5f, 0.5f,  0.5f,   0.0f, 1.0f, 0.0f, //0
+		 0.5f, 0.5f,  0.5f,  1.0f, 1.0f, 0.0f, //1
+		 0.5f,  -0.5f,  0.5f,  0.0f, 1.0f, 0.33f, //2
+		 -0.5f,  -0.5f,  0.5f, .2f, 1.0f, 0.0f //3
+		- 0.5f, 0.5f,  -0.5f,   1.0f, 0.25f, 1.0f, //4
+		 0.5f, 0.5f,  -0.5f,  0.0f, 1.0f, 0.0f, //5
+		 0.5f,  -0.5f,  -0.5f,  1.0f, 1.0f, 0.0f, //6
+		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.0f, 1.0f //7
+	};
+
+	unsigned int indices[] = {
+		0,2,1,0,3,2,	//cara frontal
+		7,5,6,4,5,7,	//cara fondo
+		5,1,2,5,2,6,	//cara derecha
+		0,4,7,0,7,3,	//cara izquierda
+		7,6,2,7,2,3,	//cara inferior
+		5,4,0,1,5,0		//cara superior
+	};
+
+	glGenVertexArrays(1, &VAOCuadrado);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+	// bind the Vertex Array Object first.
+	glBindVertexArray(VAOCuadrado);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// position Color
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 };
 
 void dibujaCuadrado() {
+	unsigned int VBO, EBO;
 
+	//vertices del cuadrado
+	float vertices[] = {
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, //0
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, //1
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, //2
+		 -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 0.0f //3
+	};
+
+	//indices
+	unsigned int indices[] = { 0, 1, 2, 2, 3, 0 };
+
+	glGenVertexArrays(1, &VAOCuadrado);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
+	// bind the Vertex Array Object first.
+	glBindVertexArray(VAOCuadrado);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// position Color
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &VBO);
+	glDeleteBuffers(1, &EBO);
 };
+
+void dibujarSuelo(glm::mat4 transform, unsigned int transformLoc) {
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+	float i, j;
+	float escalasuelo = 10;
+	for (i = -2; i <= 2; i += (1 / escalasuelo)) {
+		for (j = -2; j <= 2; j += (1 / escalasuelo)) {
+			//Calculo la matriz
+			transform = glm::mat4(); //identity matrix
+			//rotación de la camara al variar el angulo
+			transform = glm::rotate(transform, (float)(angulo * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+			//trasladamos para dibujar cada cuadrado
+			transform = glm::translate(transform, glm::vec3(i, j, 0.0f));
+			//transform = glm::rotate(transform, angulo, glm::vex3(1.0f,0.0f,0.0f));
+			//escalamos
+			transform = glm::scale(transform, glm::vec3((1 / escalasuelo), (1 / escalasuelo), (1 / escalasuelo)));
+			//La cargo
+			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+			//dibujamos el cuadrado
+			glBindVertexArray(VAOCuadrado);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+		}
+	}
+}
 
 void openGlInit() {
 	glClearDepth(1.0f); //Valor z-buffer
@@ -72,8 +250,7 @@ int main() {
 	//Creo la ventana
 
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Clases", NULL, NULL);
-	if (window == NULL)
-	{
+	if (window == NULL)	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
@@ -83,8 +260,7 @@ int main() {
 
 	// glad
 	// ---------------------------------------
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
@@ -100,8 +276,7 @@ int main() {
 
 	// Lazo de la ventana mientras no la cierre
 	// -----------
-	while (!glfwWindowShouldClose(window))
-	{
+	while (!glfwWindowShouldClose(window)){
 		// input
 		// -----
 		processInput(window);
@@ -110,33 +285,93 @@ int main() {
 		// ------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
-		
-		//Dibujo cuadrado
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+		//creamos las matrices del modelo
 		glm::mat4 transform; //es la matriz de transformación
 		glm::mat4 transformtemp; //es la matriz de transformación
 		//la busco en el shader
 		unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
-		float i, j;
-		float escalasuelo = 10;
-		for (i = -2; i <= 2; i += (1 / escalasuelo)) {
-			for (j = -2; j <= 2; j += (1 / escalasuelo)) {
-				//Calculo la matriz
-				transform = glm::mat4(); //identity matrix
-				transform = glm::rotate(transform, (float)(angulo * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
-				transform = glm::translate(transform, glm::vec3(i, j, 0.0f));
-				//transform = glm::rotate(transform, angulo, glm::vex3(1.0f,0.0f,0.0f));
-				transform = glm::scale(transform, glm::vec3((1 / escalasuelo), (1 / escalasuelo), (1 / escalasuelo)));
-				//La cargo
-				glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-				glBindVertexArray(VAOCuadrado);
-				glDrawArrays(GL_TRIANGLES, 0, 6);
-			}
-		}
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		//Dibujo del suelo
+		dibujarSuelo(transform, transformLoc);
 
+		//dibujamos la base de la grua
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		transform = glm::mat4(); //identity matrix
+		//rotación de la camara al variar el angulo
+		transform = glm::rotate(transform, (float)(angulo * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		//trasladamos
+		transform = glm::translate(transform, glm::vec3(base.px, base.py, base.pz));
+		//guardamos las tranformaciones realizadas en la matriz temporal para que las hereden las rotulas
+		transformtemp = transform;
+		transform = glm::scale(transform, glm::vec3(base.sx, base.sy, base.sz));
+		//La cargo
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		//dibujamos el cubo
+		glBindVertexArray(VAOCubo);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		//dibujamos los ejes
+		glBindVertexArray(VAOEjes);
+		glDrawElements(GL_LINE, 8, GL_UNSIGNED_INT, 0);
+
+		//primera articulacion
+		transform = glm::mat4(); //buenas praticas pero no hace falta
+		transform = transformtemp;
+		transform = glm::translate(transform, glm::vec3(baseA1.px, baseA1.py, baseA1.pz));
+		transform = glm::rotate(transform, (float)(baseA1.angulo_trans * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		transform = glm::rotate(transform, (float)(baseA1.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
+		//guardamos la matriz
+		transformtemp = transform;
+		//escalamos
+		transform = glm::scale(transform, glm::vec3(baseA1.sx, baseA1.sy, baseA1.sz));
+		//La cargo
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		//dibujamos la esfera
+		glBindVertexArray(VAOEsfera);
+		glDrawArrays(GL_TRIANGLES, 0, 1080);
+
+		//primer brazo
+		transform = glm::mat4(); //buenas praticas pero no hace falta
+		transform = transformtemp;
+		transform = glm::translate(transform, glm::vec3(base1.px, base1.py, base1.pz));
+		//guardamos la matriz
+		transformtemp = transform;
+		//escalamos
+		transform = glm::scale(transform, glm::vec3(base1.sx, base1.sy, base1.sz));
+		//La cargo
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		//dibujamos el cubo
+		glBindVertexArray(VAOCubo);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+		//segunda articulacion
+		transform = glm::mat4(); //buenas praticas pero no hace falta
+		transform = transformtemp;
+		transform = glm::translate(transform, glm::vec3(baseA2.px, baseA2.py, baseA2.pz));
+		transform = glm::rotate(transform, (float)(baseA2.angulo_trans * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		transform = glm::rotate(transform, (float)(baseA2.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
+		//guardamos la matriz
+		transformtemp = transform;
+		//escalamos
+		transform = glm::scale(transform, glm::vec3(baseA2.sx, baseA2.sy, baseA2.sz));
+		//La cargo
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		//dibujamos la esfera
+		glBindVertexArray(VAOEsfera);
+		glDrawArrays(GL_TRIANGLES, 0, 1080);
+
+		//segundo brazo
+		transform = glm::mat4(); //buenas praticas pero no hace falta
+		transform = transformtemp;
+		transform = glm::translate(transform, glm::vec3(base2.px, base2.py, base2.pz));
+		//guardamos la matriz
+		transformtemp = transform;
+		//escalamos
+		transform = glm::scale(transform, glm::vec3(base2.sx, base2.sy, base2.sz));
+		//La cargo
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		//dibujamos el cubo
+		glBindVertexArray(VAOCubo);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -145,12 +380,21 @@ int main() {
 	}
 
 	// optional: de-allocate all resources once they've outlived their purpose:
-
-	glDeleteVertexArrays(1, &VAO);
-
+	glDeleteVertexArrays(1, &VAOCubo);
+	glDeleteVertexArrays(1, &VAOCuadrado);
+	glDeleteVertexArrays(1, &VAOEjes);
 
 	// glfw: terminate, clearing all 
 
 	glfwTerminate();
 	return 0;
+}
+
+void processInput(GLFWwindow* window){
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, true);
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	printf("%d", key);
 }
