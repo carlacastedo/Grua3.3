@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <iostream>
 
 
 GLuint vertexShader, fragmentShader; // Definicion  vertex y fragment shader
