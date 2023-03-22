@@ -172,10 +172,10 @@ void dibujaCuadrado() {
 
 	//vertices del cuadrado
 	float vertices[] = {
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, //0
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, //1
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, //2
-		 -0.5f,  0.5f,  0.5f, 1.0f, 1.0f, 0.0f //3
+		-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 0.0f, //0
+		 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, //1
+		 0.5f,  0.5f,  0.0f,  1.0f, 1.0f, 0.0f, //2
+		 -0.5f,  0.5f,  0.0f, 1.0f, 1.0f, 1.0f //3
 	};
 
 	//indices
@@ -226,7 +226,7 @@ void dibujarSuelo(glm::mat4 transform, unsigned int transformLoc) {
 			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 			//dibujamos el cuadrado
 			glBindVertexArray(VAOCuadrado);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glDrawElements(GL_TRIANGLES, 6,GL_UNSIGNED_INT, 0);
 		}
 	}
 }
