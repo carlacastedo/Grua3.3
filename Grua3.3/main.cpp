@@ -415,5 +415,17 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (key == 263) {//flecha izquierda
 		angulo_z -= 1;
 	}
+	if (key == 65) {//Letra A, orienta la base a la izquierda
+		base.angulo_trans -= 1;
+	}
+	if (key == 68) {//Letra D, orienta la base a la derecha
+		base.angulo_trans += 1;
+	}
+	if (key == 83) {//Letra W, avanza la base hacia adelante
+		
+	}
+	if (key == 87) {//Letra S, avanza la base atrás
+
+	}
 	printf("%d\n", key);
 }
