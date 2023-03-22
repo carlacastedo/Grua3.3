@@ -269,7 +269,7 @@ int main() {
 
 	//generarShader();
 	shaderProgram = setShaders("shader.vert", "shader.frag");
-
+	glUseProgram(shaderProgram);
 	dibujaEjes();
 	dibujaCuadrado();
 	dibujaCubo();
@@ -396,5 +396,11 @@ void processInput(GLFWwindow* window){
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	if (key == 265) {
+		angulo += 0.4;
+	}
+	if (key == 264) {
+		angulo -= 0.4;
+	}
 	printf("%d\n", key);
 }
