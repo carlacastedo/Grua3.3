@@ -38,13 +38,14 @@ typedef struct {
 	unsigned int listarender; //VAO
 } objeto;
 
-objeto base = {0, 0, 0.10, 0, 0, 0.3, 0.2, 0.2, 0};
+objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, 0};
 objeto baseA1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, 0};
 objeto base1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, 0};
 objeto baseA2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, 0};
 objeto base2 = { 0, 0, 0.11, 0, 0, 0.05, 0.05, 0.3, 0 };
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
 void dibujaEsfera() {
 	unsigned int VBO;
 
@@ -304,6 +305,8 @@ int main() {
 		transform = glm::rotate(transform, (float)(angulo_z * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 		//trasladamos
 		transform = glm::translate(transform, glm::vec3(base.px, base.py, base.pz));
+		//giro de la base
+		transform = glm::rotate(transform, (float)(base.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 		//guardamos las tranformaciones realizadas en la matriz temporal para que las hereden las rotulas
 		transformtemp = transform;
 		transform = glm::scale(transform, glm::vec3(base.sx, base.sy, base.sz));
@@ -422,10 +425,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		base.angulo_trans += 1;
 	}
 	if (key == 83) {//Letra W, avanza la base hacia adelante
-		
+		base.px += 0.1;
 	}
 	if (key == 87) {//Letra S, avanza la base atrás
-
+		base.px -= 0.1;
 	}
 	printf("%d\n", key);
 }
