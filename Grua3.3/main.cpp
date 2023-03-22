@@ -28,8 +28,7 @@ unsigned int VAOEjes;
 unsigned int VAOCuadrado;
 unsigned int VAOCubo;
 unsigned int VAOEsfera;
-float angulo;
-//esfera esfera1(1.0f, 18, 9);
+float angulo_x, angulo_z;
 
 typedef struct {
 	float px, py, pz; //posición inicial
@@ -39,7 +38,7 @@ typedef struct {
 	unsigned int listarender; //VAO
 } objeto;
 
-objeto base = {0, 0, 0.15, 0, 0, 0.3, 0.2, 0.2, 0};
+objeto base = {0, 0, 0.10, 0, 0, 0.3, 0.2, 0.2, 0};
 objeto baseA1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, 0};
 objeto base1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, 0};
 objeto baseA2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, 0};
@@ -122,30 +121,30 @@ void dibujaCubo() {
 	unsigned int VBO, EBO;
 
 	float vertices[] = {
-		-0.5f, 0.5f,  0.5f,   0.0f, 1.0f, 0.0f, //0
+		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 1.0f, //0
 		 0.5f, 0.5f,  0.5f,  1.0f, 1.0f, 0.0f, //1
-		 0.5f,  -0.5f,  0.5f,  0.0f, 1.0f, 0.33f, //2
-		 -0.5f,  -0.5f,  0.5f, .2f, 1.0f, 0.0f //3
-		- 0.5f, 0.5f,  -0.5f,   1.0f, 0.25f, 1.0f, //4
-		 0.5f, 0.5f,  -0.5f,  0.0f, 1.0f, 0.0f, //5
-		 0.5f,  -0.5f,  -0.5f,  1.0f, 1.0f, 0.0f, //6
+		 0.5f,  -0.5f,  0.5f,  0.0f, 1.0f, 0.0f, //2
+		 -0.5f,  -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, //3
+		-0.5f, 0.5f,  -0.5f,   1.0f, 0.25f, 1.0f, //4
+		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
+		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 0.0f, //6
 		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.0f, 1.0f //7
 	};
 
 	unsigned int indices[] = {
 		0,2,1,0,3,2,	//cara frontal
-		7,5,6,4,5,7,	//cara fondo
+		7,5,6,4,5,7,	//cara posterior
 		5,1,2,5,2,6,	//cara derecha
 		0,4,7,0,7,3,	//cara izquierda
 		7,6,2,7,2,3,	//cara inferior
 		5,4,0,1,5,0		//cara superior
 	};
 
-	glGenVertexArrays(1, &VAOCuadrado);
+	glGenVertexArrays(1, &VAOCubo);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 	// bind the Vertex Array Object first.
-	glBindVertexArray(VAOCuadrado);
+	glBindVertexArray(VAOCubo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -206,7 +205,8 @@ void dibujaCuadrado() {
 	glDeleteBuffers(1, &EBO);
 };
 
-void dibujarSuelo(glm::mat4 transform, unsigned int transformLoc) {
+//funcion de dibujo del suelo
+void dibujaSuelo(glm::mat4 transform, unsigned int transformLoc) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	float i, j;
@@ -216,7 +216,8 @@ void dibujarSuelo(glm::mat4 transform, unsigned int transformLoc) {
 			//Calculo la matriz
 			transform = glm::mat4(); //identity matrix
 			//rotación de la camara al variar el angulo
-			transform = glm::rotate(transform, (float)(angulo * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+			transform = glm::rotate(transform, (float)(angulo_x * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+			transform = glm::rotate(transform, (float)(angulo_z * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 			//trasladamos para dibujar cada cuadrado
 			transform = glm::translate(transform, glm::vec3(i, j, 0.0f));
 			//transform = glm::rotate(transform, angulo, glm::vex3(1.0f,0.0f,0.0f));
@@ -273,6 +274,7 @@ int main() {
 	dibujaEjes();
 	dibujaCuadrado();
 	dibujaCubo();
+	dibujaEsfera();
 
 	// Lazo de la ventana mientras no la cierre
 	// -----------
@@ -292,13 +294,14 @@ int main() {
 		//la busco en el shader
 		unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 		//Dibujo del suelo
-		dibujarSuelo(transform, transformLoc);
+		dibujaSuelo(transform, transformLoc);
 
 		//dibujamos la base de la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		transform = glm::mat4(); //identity matrix
 		//rotación de la camara al variar el angulo
-		transform = glm::rotate(transform, (float)(angulo * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		transform = glm::rotate(transform, (float)(angulo_x * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		transform = glm::rotate(transform, (float)(angulo_z * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 		//trasladamos
 		transform = glm::translate(transform, glm::vec3(base.px, base.py, base.pz));
 		//guardamos las tranformaciones realizadas en la matriz temporal para que las hereden las rotulas
@@ -312,7 +315,7 @@ int main() {
 		//dibujamos los ejes
 		glBindVertexArray(VAOEjes);
 		glDrawElements(GL_LINE, 8, GL_UNSIGNED_INT, 0);
-
+		
 		//primera articulacion
 		transform = glm::mat4(); //buenas praticas pero no hace falta
 		transform = transformtemp;
@@ -383,6 +386,7 @@ int main() {
 	glDeleteVertexArrays(1, &VAOCubo);
 	glDeleteVertexArrays(1, &VAOCuadrado);
 	glDeleteVertexArrays(1, &VAOEjes);
+	glDeleteVertexArrays(1, &VAOEsfera);
 
 	// glfw: terminate, clearing all 
 
@@ -395,12 +399,21 @@ void processInput(GLFWwindow* window){
 		glfwSetWindowShouldClose(window, true);
 }
 
+//funcion de teclado
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	if (key == 265) {
-		angulo += 0.4;
+	//angulos de giro con respecto al eje x
+	if (key == 265) {//flecha arriba
+		angulo_x += 1;
 	}
-	if (key == 264) {
-		angulo -= 0.4;
+	if (key == 264) {//flecha abajo
+		angulo_x -= 1;
+	}
+	//angulos de giro con respecto al eje z
+	if (key == 262) {//flecha derecha
+		angulo_z += 1;
+	}
+	if (key == 263) {//flecha izquierda
+		angulo_z -= 1;
 	}
 	printf("%d\n", key);
 }
