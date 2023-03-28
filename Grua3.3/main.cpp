@@ -425,10 +425,12 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		base.angulo_trans += 1;
 	}
 	if (key == 83) {//Letra W, avanza la base hacia adelante
-		base.px += 0.1;
+		base.px += 0.1 * cos(base.angulo_trans*ARADIANES);
+		base.py += 0.1 * sin(base.angulo_trans*ARADIANES);
 	}
 	if (key == 87) {//Letra S, avanza la base atrás
-		base.px -= 0.1;
+		base.px -= 0.1 * cos(base.angulo_trans * ARADIANES);
+		base.py -= 0.1 * sin(base.angulo_trans * ARADIANES);
 	}
 	printf("%d\n", key);
 }
