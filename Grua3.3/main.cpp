@@ -123,12 +123,12 @@ void dibujaCubo() {
 
 	float vertices[] = {
 		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
-		 0.5f, 0.5f,  0.5f,  1.0f, 0.85f, 0.47f, //1
-		 0.5f,  -0.5f,  0.5f,  1.0f, 0.84f, 0.0f, //2
+		 0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
+		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
 		 -0.5f,  -0.5f,  0.5f, 0.8f, 0.68f, 0.0f, //3
 		-0.5f, 0.5f,  -0.5f,   1.0f, 1.0, 0.88f, //4
-		 0.5f, 0.5f,  -0.5f,  0.68f, 1.0f, 0.18f, //5
-		 0.5f,  -0.5f,  -0.5f,  1.0f, 0.65f, 0.0f, //6
+		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
+		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //6
 		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f //7
 	};
 
@@ -406,10 +406,10 @@ void processInput(GLFWwindow* window){
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	//angulos de giro con respecto al eje x
 	if (key == 265) {//flecha arriba
-		angulo_x += 1;
+		angulo_x -= 1;
 	}
 	if (key == 264) {//flecha abajo
-		angulo_x -= 1;
+		angulo_x += 1;
 	}
 	//angulos de giro con respecto al eje z
 	if (key == 262) {//flecha derecha
@@ -431,6 +431,30 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (key == 87) {//Letra S, avanza la base atrás
 		base.px -= 0.1 * cos(base.angulo_trans * ARADIANES);
 		base.py -= 0.1 * sin(base.angulo_trans * ARADIANES);
+	}
+	if (key == 75) {//Letra K orienta el primer brazo a la izquierda
+		if (baseA1.angulo_trans > -65) baseA1.angulo_trans -= 1;
+	}
+	if (key == 59) {//Letra Ñ orienta el primer brazo a la derecha
+		if(baseA1.angulo_trans < 65) baseA1.angulo_trans += 1;
+	}
+	if (key == 79) {//Letra O orienta el primer brazo arriba
+		if (baseA1.angulo_trans_2 > -65) baseA1.angulo_trans_2 -= 1;
+	}
+	if (key == 76) {//Letra L orienta el primer brazo abajo
+		if (baseA1.angulo_trans_2 < 65) baseA1.angulo_trans_2 += 1;
+	}
+	if (key == 66) {//Letra B orienta el segundo brazo a la izquierda
+		if (baseA2.angulo_trans > -135) baseA2.angulo_trans -= 1;
+	}
+	if (key == 77) {//Letra M orienta el segundo brazo a la derecha
+		if (baseA2.angulo_trans < 135) baseA2.angulo_trans += 1;
+	}
+	if (key == 72) {//Letra H orienta el segundo brazo arriba
+		if (baseA2.angulo_trans_2 > -135) baseA2.angulo_trans_2 -= 1;
+	}
+	if (key == 78) {//Letra N orienta el segundo brazo abajo
+		if (baseA2.angulo_trans_2 < 135) baseA2.angulo_trans_2 += 1;
 	}
 	printf("%d\n", key);
 }
