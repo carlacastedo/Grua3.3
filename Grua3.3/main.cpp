@@ -501,6 +501,5 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (base.py >= 2.0 - base.sx / 2.0) base.py = -1.9 + base.sx / 2.0;
 	if (base.px <= -2.0 + base.sx / 2.0) base.px = 2.0 - base.sx / 2.0;
 	if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
-	printf("(%f, %f)\n", base.px, base.py);
-	//printf("%d\n", key);
+	printf("%d\n", key);
 }
