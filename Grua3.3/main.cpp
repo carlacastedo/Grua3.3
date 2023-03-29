@@ -38,11 +38,11 @@ typedef struct {
 	unsigned int listarender; //VAO
 } objeto;
 
-objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, 0};
-objeto baseA1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, 0};
-objeto base1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, 0};
-objeto baseA2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, 0};
-objeto base2 = { 0, 0, 0.11, 0, 0, 0.05, 0.05, 0.3, 0 };
+objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, VAOCubo};
+objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, VAOEsfera};
+objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, VAOCubo};
+objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, VAOEsfera};
+objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.05, 0.05, 0.3, VAOCubo};
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
@@ -72,6 +72,7 @@ void dibujaEsfera() {
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &VBO);
 }
+
 void dibujaEjes() {
 	unsigned int VBO, EBO;
 	// set up vertex data (and buffer(s)) and configure vertex attributes
@@ -322,13 +323,13 @@ int main() {
 		//primera articulacion
 		transform = glm::mat4(); //buenas praticas pero no hace falta
 		transform = transformtemp;
-		transform = glm::translate(transform, glm::vec3(baseA1.px, baseA1.py, baseA1.pz));
-		transform = glm::rotate(transform, (float)(baseA1.angulo_trans * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
-		transform = glm::rotate(transform, (float)(baseA1.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
+		transform = glm::translate(transform, glm::vec3(articulacion1.px, articulacion1.py, articulacion1.pz));
+		transform = glm::rotate(transform, (float)(articulacion1.angulo_trans * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		transform = glm::rotate(transform, (float)(articulacion1.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
 		//guardamos la matriz
 		transformtemp = transform;
 		//escalamos
-		transform = glm::scale(transform, glm::vec3(baseA1.sx, baseA1.sy, baseA1.sz));
+		transform = glm::scale(transform, glm::vec3(articulacion1.sx, articulacion1.sy, articulacion1.sz));
 		//La cargo
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 		//dibujamos la esfera
@@ -338,11 +339,11 @@ int main() {
 		//primer brazo
 		transform = glm::mat4(); //buenas praticas pero no hace falta
 		transform = transformtemp;
-		transform = glm::translate(transform, glm::vec3(base1.px, base1.py, base1.pz));
+		transform = glm::translate(transform, glm::vec3(brazo1.px, brazo1.py, brazo1.pz));
 		//guardamos la matriz
 		transformtemp = transform;
 		//escalamos
-		transform = glm::scale(transform, glm::vec3(base1.sx, base1.sy, base1.sz));
+		transform = glm::scale(transform, glm::vec3(brazo1.sx, brazo1.sy, brazo1.sz));
 		//La cargo
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 		//dibujamos el cubo
@@ -352,13 +353,13 @@ int main() {
 		//segunda articulacion
 		transform = glm::mat4(); //buenas praticas pero no hace falta
 		transform = transformtemp;
-		transform = glm::translate(transform, glm::vec3(baseA2.px, baseA2.py, baseA2.pz));
-		transform = glm::rotate(transform, (float)(baseA2.angulo_trans * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
-		transform = glm::rotate(transform, (float)(baseA2.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
+		transform = glm::translate(transform, glm::vec3(articulacion2.px, articulacion2.py, articulacion2.pz));
+		transform = glm::rotate(transform, (float)(articulacion2.angulo_trans * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		transform = glm::rotate(transform, (float)(articulacion2.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
 		//guardamos la matriz
 		transformtemp = transform;
 		//escalamos
-		transform = glm::scale(transform, glm::vec3(baseA2.sx, baseA2.sy, baseA2.sz));
+		transform = glm::scale(transform, glm::vec3(articulacion2.sx, articulacion2.sy, articulacion2.sz));
 		//La cargo
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 		//dibujamos la esfera
@@ -368,11 +369,11 @@ int main() {
 		//segundo brazo
 		transform = glm::mat4(); //buenas praticas pero no hace falta
 		transform = transformtemp;
-		transform = glm::translate(transform, glm::vec3(base2.px, base2.py, base2.pz));
+		transform = glm::translate(transform, glm::vec3(brazo2.px, brazo2.py, brazo2.pz));
 		//guardamos la matriz
 		transformtemp = transform;
 		//escalamos
-		transform = glm::scale(transform, glm::vec3(base2.sx, base2.sy, base2.sz));
+		transform = glm::scale(transform, glm::vec3(brazo2.sx, brazo2.sy, brazo2.sz));
 		//La cargo
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 		//dibujamos el cubo
@@ -425,36 +426,41 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		base.angulo_trans += 1;
 	}
 	if (key == 83) {//Letra W, avanza la base hacia adelante
-		base.px += 0.1 * cos(base.angulo_trans*ARADIANES);
-		base.py += 0.1 * sin(base.angulo_trans*ARADIANES);
+		base.px += 0.05 * cos(base.angulo_trans * ARADIANES);
+		base.py += 0.05 * sin(base.angulo_trans * ARADIANES);
 	}
 	if (key == 87) {//Letra S, avanza la base atrás
-		base.px -= 0.1 * cos(base.angulo_trans * ARADIANES);
-		base.py -= 0.1 * sin(base.angulo_trans * ARADIANES);
+		base.px -= 0.05 * cos(base.angulo_trans * ARADIANES);
+		base.py -= 0.05 * sin(base.angulo_trans * ARADIANES);
 	}
 	if (key == 75) {//Letra K orienta el primer brazo a la izquierda
-		if (baseA1.angulo_trans > -65) baseA1.angulo_trans -= 1;
+		if (articulacion1.angulo_trans > -65) articulacion1.angulo_trans -= 1;
 	}
 	if (key == 59) {//Letra Ñ orienta el primer brazo a la derecha
-		if(baseA1.angulo_trans < 65) baseA1.angulo_trans += 1;
+		if(articulacion1.angulo_trans < 65) articulacion1.angulo_trans += 1;
 	}
 	if (key == 79) {//Letra O orienta el primer brazo arriba
-		if (baseA1.angulo_trans_2 > -65) baseA1.angulo_trans_2 -= 1;
+		if (articulacion1.angulo_trans_2 > -65) articulacion1.angulo_trans_2 -= 1;
 	}
 	if (key == 76) {//Letra L orienta el primer brazo abajo
-		if (baseA1.angulo_trans_2 < 65) baseA1.angulo_trans_2 += 1;
+		if (articulacion1.angulo_trans_2 < 65) articulacion1.angulo_trans_2 += 1;
 	}
 	if (key == 66) {//Letra B orienta el segundo brazo a la izquierda
-		if (baseA2.angulo_trans > -135) baseA2.angulo_trans -= 1;
+		if (articulacion2.angulo_trans > -135) articulacion2.angulo_trans -= 1;
 	}
 	if (key == 77) {//Letra M orienta el segundo brazo a la derecha
-		if (baseA2.angulo_trans < 135) baseA2.angulo_trans += 1;
+		if (articulacion2.angulo_trans < 135) articulacion2.angulo_trans += 1;
 	}
 	if (key == 72) {//Letra H orienta el segundo brazo arriba
-		if (baseA2.angulo_trans_2 > -135) baseA2.angulo_trans_2 -= 1;
+		if (articulacion2.angulo_trans_2 > -135) articulacion2.angulo_trans_2 -= 1;
 	}
 	if (key == 78) {//Letra N orienta el segundo brazo abajo
-		if (baseA2.angulo_trans_2 < 135) baseA2.angulo_trans_2 += 1;
+		if (articulacion2.angulo_trans_2 < 135) articulacion2.angulo_trans_2 += 1;
 	}
-	printf("%d\n", key);
+	if (base.px >= 1.0)base.px = -1.0;
+	if (base.py >= 1)base.py = -1.0;
+	if (base.px <= -1)base.px = 1.0;
+	if (base.py <=  -1)base.py = 1.0;
+	printf("(%f, %f)\n", base.px, base.py);
+	//printf("%d\n", key);
 }
