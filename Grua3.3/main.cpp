@@ -18,8 +18,8 @@
 void processInput(GLFWwindow* window);
 
 //settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 800;
+const unsigned int ANCHO = 800;
+const unsigned int ALTO = 800;
 
 extern GLuint setShaders(const char* nVertix, const char* nFrag);
 GLuint shaderProgram;
@@ -42,9 +42,47 @@ objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, VAOCubo};
 objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, VAOEsfera};
 objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, VAOCubo};
 objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, VAOEsfera};
-objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.05, 0.05, 0.3, VAOCubo};
+objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, VAOCubo};
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+void camara() {
+	glViewport(0, 0, ANCHO, ALTO);
+	//Matriz de vista
+	glm::mat4 view;
+	//Cargamos la identidad
+	view = glm::mat4();
+	view = glm::lookAt(glm::vec3(.0f, .0f, 5.0f), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, 1.0f, .0f));
+	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	//Matriz de proyección
+	glm::mat4 projection;
+	//Cargamos la identidad
+	projection = glm::mat4();
+	projection = glm::perspective(45.0f,(float) ANCHO/ (float) ALTO, 0.01f, 6.0f);
+	unsigned int projectionLoc = glad_glGetUniformLocation(shaderProgram, "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+}
+
+void terceraPersona(float px, float py, float pz, float angulo) {
+	glViewport(0, 0, ANCHO, ALTO);
+	//Matriz de vista
+	glm::mat4 view;
+	//Cargamos la identidad
+	view = glm::mat4();
+	view = glm::lookAt(glm::vec3(px-0.5*cos(angulo*ARADIANES),py-0.5*sin(angulo*ARADIANES), pz+.4),
+		glm::vec3(px +10 * cos(angulo * ARADIANES), py + 10 * sin(angulo * ARADIANES), pz),
+		glm::vec3(.0f, .0f, 1.0f));
+	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	//Matriz de proyección
+	glm::mat4 projection;
+	//Cargamos la identidad
+	projection = glm::mat4();
+	projection = glm::perspective(45.0f, (float)ANCHO / (float)ALTO, 0.01f, 6.0f);
+	unsigned int projectionLoc = glad_glGetUniformLocation(shaderProgram, "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+}
 
 void dibujaEsfera() {
 	unsigned int VBO;
@@ -252,7 +290,7 @@ int main() {
 
 	//Creo la ventana
 
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Clases", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(ANCHO, ALTO, "Clases", NULL, NULL);
 	if (window == NULL)	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -277,6 +315,7 @@ int main() {
 	dibujaCuadrado();
 	dibujaCubo();
 	dibujaEsfera();
+	//camara();
 
 	// Lazo de la ventana mientras no la cierre
 	// -----------
@@ -289,7 +328,7 @@ int main() {
 		// ------
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
-
+		terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
 		//creamos las matrices del modelo
 		glm::mat4 transform; //es la matriz de transformación
 		glm::mat4 transformtemp; //es la matriz de transformación
@@ -420,18 +459,18 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		angulo_z -= 1;
 	}
 	if (key == 65) {//Letra A, orienta la base a la izquierda
-		base.angulo_trans -= 1;
-	}
-	if (key == 68) {//Letra D, orienta la base a la derecha
 		base.angulo_trans += 1;
 	}
-	if (key == 83) {//Letra W, avanza la base hacia adelante
-		base.px += 0.05 * cos(base.angulo_trans * ARADIANES);
-		base.py += 0.05 * sin(base.angulo_trans * ARADIANES);
+	if (key == 68) {//Letra D, orienta la base a la derecha
+		base.angulo_trans -= 1;
 	}
-	if (key == 87) {//Letra S, avanza la base atrás
+	if (key == 83) {//Letra W, avanza la base hacia delante
 		base.px -= 0.05 * cos(base.angulo_trans * ARADIANES);
 		base.py -= 0.05 * sin(base.angulo_trans * ARADIANES);
+	}
+	if (key == 87) {//Letra S, avanza la base atrás
+		base.px += 0.05 * cos(base.angulo_trans * ARADIANES);
+		base.py += 0.05 * sin(base.angulo_trans * ARADIANES);
 	}
 	if (key == 75) {//Letra K orienta el primer brazo a la izquierda
 		if (articulacion1.angulo_trans > -65) articulacion1.angulo_trans -= 1;
@@ -440,10 +479,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		if(articulacion1.angulo_trans < 65) articulacion1.angulo_trans += 1;
 	}
 	if (key == 79) {//Letra O orienta el primer brazo arriba
-		if (articulacion1.angulo_trans_2 > -65) articulacion1.angulo_trans_2 -= 1;
+		if (articulacion1.angulo_trans_2 < 65) articulacion1.angulo_trans_2 += 1;
 	}
 	if (key == 76) {//Letra L orienta el primer brazo abajo
-		if (articulacion1.angulo_trans_2 < 65) articulacion1.angulo_trans_2 += 1;
+		if (articulacion1.angulo_trans_2 > -65) articulacion1.angulo_trans_2 -= 1;
 	}
 	if (key == 66) {//Letra B orienta el segundo brazo a la izquierda
 		if (articulacion2.angulo_trans > -135) articulacion2.angulo_trans -= 1;
@@ -452,15 +491,16 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		if (articulacion2.angulo_trans < 135) articulacion2.angulo_trans += 1;
 	}
 	if (key == 72) {//Letra H orienta el segundo brazo arriba
-		if (articulacion2.angulo_trans_2 > -135) articulacion2.angulo_trans_2 -= 1;
-	}
-	if (key == 78) {//Letra N orienta el segundo brazo abajo
 		if (articulacion2.angulo_trans_2 < 135) articulacion2.angulo_trans_2 += 1;
 	}
-	if (base.px >= 1.0+(base.sx/2.0)) base.px = -(0.9+(base.sx / 2.0));
-	if (base.py >= 1.0 + (base.sx / 2.0)) base.py = -(0.9 + (base.sx / 2.0));
-	if (base.px <= -1.0-(base.sx / 2.0)) base.px = 1.0 + (base.sx / 2.0);
-	if (base.py <= -1.0-(base.sx / 2.0)) base.py = 1.0 + (base.sx / 2.0);
+	if (key == 78) {//Letra N orienta el segundo brazo abajo
+		if (articulacion2.angulo_trans_2 > -135) articulacion2.angulo_trans_2 -= 1;
+	}
+	//Corte al salir del suelo
+	if (base.px >= 2.0-base.sx/2.0) base.px = -1.9+base.sx/2.0;
+	if (base.py >= 2.0 - base.sx / 2.0) base.py = -1.9 + base.sx / 2.0;
+	if (base.px <= -2.0 + base.sx / 2.0) base.px = 2.0 - base.sx / 2.0;
+	if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
 	printf("(%f, %f)\n", base.px, base.py);
 	//printf("%d\n", key);
 }
