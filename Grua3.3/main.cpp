@@ -457,10 +457,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (key == 78) {//Letra N orienta el segundo brazo abajo
 		if (articulacion2.angulo_trans_2 < 135) articulacion2.angulo_trans_2 += 1;
 	}
-	if (base.px >= 1.0)base.px = -1.0;
-	if (base.py >= 1)base.py = -1.0;
-	if (base.px <= -1)base.px = 1.0;
-	if (base.py <=  -1)base.py = 1.0;
+	if (base.px >= 1.0+(base.sx/2.0)) base.px = -(0.9+(base.sx / 2.0));
+	if (base.py >= 1.0 + (base.sx / 2.0)) base.py = -(0.9 + (base.sx / 2.0));
+	if (base.px <= -1.0-(base.sx / 2.0)) base.px = 1.0 + (base.sx / 2.0);
+	if (base.py <= -1.0-(base.sx / 2.0)) base.py = 1.0 + (base.sx / 2.0);
 	printf("(%f, %f)\n", base.px, base.py);
 	//printf("%d\n", key);
 }
