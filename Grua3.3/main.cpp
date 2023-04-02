@@ -21,6 +21,9 @@ void processInput(GLFWwindow* window);
 const unsigned int ANCHO = 800;
 const unsigned int ALTO = 800;
 
+//velocidad de la grua
+float velocidad = 0;
+
 extern GLuint setShaders(const char* nVertix, const char* nFrag);
 GLuint shaderProgram;
 
@@ -336,7 +339,14 @@ int main() {
 		unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 		//Dibujo del suelo
 		dibujaSuelo(transform, transformLoc);
-
+		//actualizacion de la posicion de la base con la velocidad
+		base.px += velocidad * cos(base.angulo_trans * ARADIANES);
+		base.py += velocidad * sin(base.angulo_trans * ARADIANES);
+		//Corte al salir del suelo
+		if (base.px >= 2.0 - base.sx / 2.0) base.px = -1.9 + base.sx / 2.0;
+		if (base.py >= 2.0 - base.sx / 2.0) base.py = -1.9 + base.sx / 2.0;
+		if (base.px <= -2.0 + base.sx / 2.0) base.px = 2.0 - base.sx / 2.0;
+		if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
 		//dibujamos la base de la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		transform = glm::mat4(); //identity matrix
@@ -363,7 +373,7 @@ int main() {
 		transform = glm::mat4(); //buenas praticas pero no hace falta
 		transform = transformtemp;
 		transform = glm::translate(transform, glm::vec3(articulacion1.px, articulacion1.py, articulacion1.pz));
-		transform = glm::rotate(transform, (float)(articulacion1.angulo_trans * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		transform = glm::rotate(transform, (float)(articulacion1.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 		transform = glm::rotate(transform, (float)(articulacion1.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
 		//guardamos la matriz
 		transformtemp = transform;
@@ -393,7 +403,7 @@ int main() {
 		transform = glm::mat4(); //buenas praticas pero no hace falta
 		transform = transformtemp;
 		transform = glm::translate(transform, glm::vec3(articulacion2.px, articulacion2.py, articulacion2.pz));
-		transform = glm::rotate(transform, (float)(articulacion2.angulo_trans * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
+		transform = glm::rotate(transform, (float)(articulacion2.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 		transform = glm::rotate(transform, (float)(articulacion2.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
 		//guardamos la matriz
 		transformtemp = transform;
@@ -464,19 +474,17 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (key == 68) {//Letra D, orienta la base a la derecha
 		base.angulo_trans -= 1;
 	}
-	if (key == 83) {//Letra W, avanza la base hacia delante
-		base.px -= 0.05 * cos(base.angulo_trans * ARADIANES);
-		base.py -= 0.05 * sin(base.angulo_trans * ARADIANES);
+	if (key == 87) {//Letra W, avanza la base hacia delante
+		velocidad += 0.001;
 	}
-	if (key == 87) {//Letra S, avanza la base atrás
-		base.px += 0.05 * cos(base.angulo_trans * ARADIANES);
-		base.py += 0.05 * sin(base.angulo_trans * ARADIANES);
+	if (key == 88) {//Letra X, avanza la base atrás
+		velocidad -= 0.001;
 	}
 	if (key == 75) {//Letra K orienta el primer brazo a la izquierda
-		if (articulacion1.angulo_trans > -65) articulacion1.angulo_trans -= 1;
+		articulacion1.angulo_trans += 1;
 	}
 	if (key == 59) {//Letra Ñ orienta el primer brazo a la derecha
-		if(articulacion1.angulo_trans < 65) articulacion1.angulo_trans += 1;
+		articulacion1.angulo_trans -= 1;
 	}
 	if (key == 79) {//Letra O orienta el primer brazo arriba
 		if (articulacion1.angulo_trans_2 < 65) articulacion1.angulo_trans_2 += 1;
@@ -485,10 +493,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		if (articulacion1.angulo_trans_2 > -65) articulacion1.angulo_trans_2 -= 1;
 	}
 	if (key == 66) {//Letra B orienta el segundo brazo a la izquierda
-		if (articulacion2.angulo_trans > -135) articulacion2.angulo_trans -= 1;
+		articulacion2.angulo_trans += 1;
 	}
 	if (key == 77) {//Letra M orienta el segundo brazo a la derecha
-		if (articulacion2.angulo_trans < 135) articulacion2.angulo_trans += 1;
+		articulacion2.angulo_trans -= 1;
 	}
 	if (key == 72) {//Letra H orienta el segundo brazo arriba
 		if (articulacion2.angulo_trans_2 < 135) articulacion2.angulo_trans_2 += 1;
@@ -496,10 +504,5 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (key == 78) {//Letra N orienta el segundo brazo abajo
 		if (articulacion2.angulo_trans_2 > -135) articulacion2.angulo_trans_2 -= 1;
 	}
-	//Corte al salir del suelo
-	if (base.px >= 2.0-base.sx/2.0) base.px = -1.9+base.sx/2.0;
-	if (base.py >= 2.0 - base.sx / 2.0) base.py = -1.9 + base.sx / 2.0;
-	if (base.px <= -2.0 + base.sx / 2.0) base.px = 2.0 - base.sx / 2.0;
-	if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
 	printf("%d\n", key);
 }
