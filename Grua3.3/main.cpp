@@ -33,7 +33,7 @@ unsigned int VAOEjes;
 unsigned int VAOCuadrado;
 unsigned int VAOCubo;
 unsigned int VAOEsfera;
-float angulo_x, angulo_z=90;
+float angulo_x=0, angulo_z=0;
 
 typedef struct {
 	float px, py, pz; //posición inicial
@@ -360,10 +360,14 @@ int main() {
 			//camara en primera persona
 			case 1:
 				primeraPersona(base.px, base.py, base.pz, base.angulo_trans);
+				angulo_x = 0;
+				angulo_z = 0;
 				break;
 			//camara en tercera persona
 			case 3:
 				terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
+				angulo_x = 0;
+				angulo_z = 0;
 				break;
 			default: 
 				camaraAlejada();
@@ -551,5 +555,5 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		angulo_x = 0;
 		angulo_z = 0;
 	}
-	printf("%d\n", key);
+	printf("%f %f %f %d\n", base.px,base.py,base.pz, key);
 }
