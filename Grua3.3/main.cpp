@@ -23,6 +23,8 @@ const unsigned int ALTO = 800;
 
 //velocidad de la grua
 float velocidad = 0;
+//camara
+unsigned int modoCamara = 0;
 
 extern GLuint setShaders(const char* nVertix, const char* nFrag);
 GLuint shaderProgram;
@@ -31,7 +33,7 @@ unsigned int VAOEjes;
 unsigned int VAOCuadrado;
 unsigned int VAOCubo;
 unsigned int VAOEsfera;
-float angulo_x, angulo_z;
+float angulo_x, angulo_z=90;
 
 typedef struct {
 	float px, py, pz; //posición inicial
@@ -49,25 +51,45 @@ objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, VAOCubo};
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-void camara() {
+void camaraAlejada() {
 	glViewport(0, 0, ANCHO, ALTO);
 	//Matriz de vista
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
-	view = glm::lookAt(glm::vec3(.0f, .0f, 5.0f), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, 1.0f, .0f));
+	view = glm::lookAt(glm::vec3(.0f, .0f, 4.0f), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, 1.0f, .0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 	//Matriz de proyección
 	glm::mat4 projection;
 	//Cargamos la identidad
 	projection = glm::mat4();
-	projection = glm::perspective(45.0f,(float) ANCHO/ (float) ALTO, 0.01f, 6.0f);
+	projection = glm::perspective(45.0f,(float) ANCHO/ (float) ALTO, 0.01f, 10.0f);
 	unsigned int projectionLoc = glad_glGetUniformLocation(shaderProgram, "projection");
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
 void terceraPersona(float px, float py, float pz, float angulo) {
+	glViewport(0, 0, ANCHO, ALTO);
+	//Matriz de vista
+	glm::mat4 view;
+	//Cargamos la identidad
+	view = glm::mat4();
+	view = glm::lookAt(glm::vec3(px - 1 * cos(angulo * ARADIANES), py - 1 * sin(angulo * ARADIANES), pz + 0.5),
+		glm::vec3(px + 10 * cos(angulo * ARADIANES), py + 10 * sin(angulo * ARADIANES), pz),
+		glm::vec3(.0f, .0f, 1.0f));
+	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	//Matriz de proyección
+	glm::mat4 projection;
+	//Cargamos la identidad
+	projection = glm::mat4();
+	projection = glm::perspective(45.0f, (float)ANCHO / (float)ALTO, 0.01f, 6.0f);
+	unsigned int projectionLoc = glad_glGetUniformLocation(shaderProgram, "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+}
+
+void primeraPersona(float px, float py, float pz, float angulo) {
 	glViewport(0, 0, ANCHO, ALTO);
 	//Matriz de vista
 	glm::mat4 view;
@@ -263,7 +285,6 @@ void dibujaSuelo(glm::mat4 transform, unsigned int transformLoc) {
 			transform = glm::rotate(transform, (float)(angulo_z * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 			//trasladamos para dibujar cada cuadrado
 			transform = glm::translate(transform, glm::vec3(i, j, 0.0f));
-			//transform = glm::rotate(transform, angulo, glm::vex3(1.0f,0.0f,0.0f));
 			//escalamos
 			transform = glm::scale(transform, glm::vec3((1 / escalasuelo), (1 / escalasuelo), (1 / escalasuelo)));
 			//La cargo
@@ -318,7 +339,6 @@ int main() {
 	dibujaCuadrado();
 	dibujaCubo();
 	dibujaEsfera();
-	//camara();
 
 	// Lazo de la ventana mientras no la cierre
 	// -----------
@@ -331,7 +351,23 @@ int main() {
 		// ------
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
-		terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
+		//modo de la camara
+		switch (modoCamara) {
+			//camara alejada
+			case 0: 
+				camaraAlejada();
+				break;
+			//camara en primera persona
+			case 1:
+				primeraPersona(base.px, base.py, base.pz, base.angulo_trans);
+				break;
+			//camara en tercera persona
+			case 3:
+				terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
+				break;
+			default: 
+				camaraAlejada();
+		}
 		//creamos las matrices del modelo
 		glm::mat4 transform; //es la matriz de transformación
 		glm::mat4 transformtemp; //es la matriz de transformación
@@ -455,17 +491,17 @@ void processInput(GLFWwindow* window){
 //funcion de teclado
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	//angulos de giro con respecto al eje x
-	if (key == 265) {//flecha arriba
+	if (key == 265 && modoCamara == 0) {//flecha arriba
 		angulo_x -= 1;
 	}
-	if (key == 264) {//flecha abajo
+	if (key == 264 && modoCamara == 0) {//flecha abajo
 		angulo_x += 1;
 	}
 	//angulos de giro con respecto al eje z
-	if (key == 262) {//flecha derecha
+	if (key == 262 && modoCamara == 0) {//flecha derecha
 		angulo_z += 1;
 	}
-	if (key == 263) {//flecha izquierda
+	if (key == 263 && modoCamara == 0) {//flecha izquierda
 		angulo_z -= 1;
 	}
 	if (key == 65) {//Letra A, orienta la base a la izquierda
@@ -503,6 +539,17 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	}
 	if (key == 78) {//Letra N orienta el segundo brazo abajo
 		if (articulacion2.angulo_trans_2 > -135) articulacion2.angulo_trans_2 -= 1;
+	}
+	//MODOS DE CAMARA
+	//si pulsamos el 1 cambiamos a primera persona
+	if (key == 49) modoCamara = 1;
+	//si pulsamos el 3 cambiamos a tercera persona
+	if (key == 51) modoCamara = 3;
+	//si pulsamos el 0 cambiamos a camara alejada
+	if (key == 48) {
+		modoCamara = 0;
+		angulo_x = 0;
+		angulo_z = 0;
 	}
 	printf("%d\n", key);
 }
