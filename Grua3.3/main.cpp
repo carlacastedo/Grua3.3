@@ -33,7 +33,7 @@ unsigned int VAOEjes;
 unsigned int VAOCuadrado;
 unsigned int VAOCubo;
 unsigned int VAOEsfera;
-float angulo_x=0, angulo_z=0;
+float alfa=0, beta=0;
 
 typedef struct {
 	float px, py, pz; //posición inicial
@@ -57,7 +57,7 @@ void camaraAlejada() {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
-	view = glm::lookAt(glm::vec3(.0f, .0f, 4.0f), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, 1.0f, .0f));
+	view = glm::lookAt(glm::vec3(4 * sin(alfa * ARADIANES) * cos(beta * ARADIANES), 4 * sin(beta * ARADIANES), 4 * cos(alfa * ARADIANES) * cos(beta * ARADIANES)), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, cos(beta * ARADIANES), .0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 	//Matriz de proyección
@@ -280,9 +280,6 @@ void dibujaSuelo(glm::mat4 transform, unsigned int transformLoc) {
 		for (j = -2; j <= 2; j += (1 / escalasuelo)) {
 			//Calculo la matriz
 			transform = glm::mat4(); //identity matrix
-			//rotación de la camara al variar el angulo
-			transform = glm::rotate(transform, (float)(angulo_x * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
-			transform = glm::rotate(transform, (float)(angulo_z * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 			//trasladamos para dibujar cada cuadrado
 			transform = glm::translate(transform, glm::vec3(i, j, 0.0f));
 			//escalamos
@@ -314,7 +311,7 @@ int main() {
 
 	//Creo la ventana
 
-	GLFWwindow* window = glfwCreateWindow(ANCHO, ALTO, "Clases", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(ANCHO, ALTO, "Grua con OpenGL 3.3", NULL, NULL);
 	if (window == NULL)	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -360,14 +357,14 @@ int main() {
 			//camara en primera persona
 			case 1:
 				primeraPersona(base.px, base.py, base.pz, base.angulo_trans);
-				angulo_x = 0;
-				angulo_z = 0;
+				alfa = 0;
+				beta = 0;
 				break;
 			//camara en tercera persona
 			case 3:
 				terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
-				angulo_x = 0;
-				angulo_z = 0;
+				alfa = 0;
+				beta = 0;
 				break;
 			default: 
 				camaraAlejada();
@@ -390,9 +387,6 @@ int main() {
 		//dibujamos la base de la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		transform = glm::mat4(); //identity matrix
-		//rotación de la camara al variar el angulo
-		transform = glm::rotate(transform, (float)(angulo_x * ARADIANES), glm::vec3(1.0f, 0.0f, 0.0f));
-		transform = glm::rotate(transform, (float)(angulo_z * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 		//trasladamos
 		transform = glm::translate(transform, glm::vec3(base.px, base.py, base.pz));
 		//giro de la base
@@ -496,17 +490,17 @@ void processInput(GLFWwindow* window){
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	//angulos de giro con respecto al eje x
 	if (key == 265 && modoCamara == 0) {//flecha arriba
-		angulo_x -= 1;
+		beta += 1;
 	}
 	if (key == 264 && modoCamara == 0) {//flecha abajo
-		angulo_x += 1;
+		beta -= 1;
 	}
 	//angulos de giro con respecto al eje z
 	if (key == 262 && modoCamara == 0) {//flecha derecha
-		angulo_z += 1;
+		alfa -= 1;
 	}
 	if (key == 263 && modoCamara == 0) {//flecha izquierda
-		angulo_z -= 1;
+		alfa += 1;
 	}
 	if (key == 65) {//Letra A, orienta la base a la izquierda
 		base.angulo_trans += 1;
@@ -552,8 +546,8 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	//si pulsamos el 0 cambiamos a camara alejada
 	if (key == 48) {
 		modoCamara = 0;
-		angulo_x = 0;
-		angulo_z = 0;
+		alfa = 0;
+		beta = 0;
 	}
 	printf("%f %f %f %d\n", base.px,base.py,base.pz, key);
 }
