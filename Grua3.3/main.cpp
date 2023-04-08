@@ -40,14 +40,14 @@ typedef struct {
 	float angulo_trans; //angulo giro x
 	float angulo_trans_2; //angulo giro z
 	float sx, sy, sz; //escalado en los dos ejes
-	unsigned int listarender; //VAO
+	unsigned int *listarender; //VAO
 } objeto;
 
-objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, VAOCubo};
-objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, VAOEsfera};
-objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, VAOCubo};
-objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, VAOEsfera};
-objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, VAOCubo};
+objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo};
+objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera};
+objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, &VAOCubo};
+objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera};
+objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo};
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
@@ -107,6 +107,33 @@ void primeraPersona(float px, float py, float pz, float angulo) {
 	projection = glm::perspective(45.0f, (float)ANCHO / (float)ALTO, 0.01f, 6.0f);
 	unsigned int projectionLoc = glad_glGetUniformLocation(shaderProgram, "projection");
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+}
+
+glm::mat4 dibujaObjeto(objeto o, glm::mat4 transform) {
+	glm::mat4 transformtemp;
+	unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+	//trasladamos
+	transform = glm::translate(transform, glm::vec3(o.px, o.py, o.pz));
+	//giro de la base
+	transform = glm::rotate(transform, (float)(o.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
+	//guardamos las tranformaciones realizadas en la matriz temporal para que las hereden las rotulas
+	transformtemp = transform;
+	transform = glm::scale(transform, glm::vec3(o.sx, o.sy, o.sz));
+	//La cargo
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+	if (*(o.listarender) == VAOCubo){
+		//dibujamos el cubo
+		glBindVertexArray(VAOCubo);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	}
+	else if (*(o.listarender) == VAOEsfera) {
+		//Dibujamos la esfera
+		glBindVertexArray(VAOEsfera);
+		glDrawArrays(GL_TRIANGLES, 0, 1080);
+	}
+	//Devolvemos la matriz para usarla en el siguiente fragmento
+	return transformtemp;
+	
 }
 
 void dibujaEsfera() {
@@ -336,7 +363,6 @@ int main() {
 	dibujaCuadrado();
 	dibujaCubo();
 	dibujaEsfera();
-
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
 	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n");
 	printf("Primera articulacion:\n\ti: Arriba\n\tk: Abajo\n\tj: Rota izquierda\n\tl: Rota derecha\n");
@@ -391,81 +417,14 @@ int main() {
 		//dibujamos la base de la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		transform = glm::mat4(); //identity matrix
-		//trasladamos
-		transform = glm::translate(transform, glm::vec3(base.px, base.py, base.pz));
-		//giro de la base
-		transform = glm::rotate(transform, (float)(base.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
-		//guardamos las tranformaciones realizadas en la matriz temporal para que las hereden las rotulas
-		transformtemp = transform;
-		transform = glm::scale(transform, glm::vec3(base.sx, base.sy, base.sz));
-		//La cargo
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-		//dibujamos el cubo
-		glBindVertexArray(VAOCubo);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-		//dibujamos los ejes
+		transform = dibujaObjeto(base, transform);
+		transform = dibujaObjeto(articulacion1, transform);
+		transform = dibujaObjeto(brazo1, transform);
+		transform = dibujaObjeto(articulacion2, transform);
+		transform = dibujaObjeto(brazo2, transform);
 		glBindVertexArray(VAOEjes);
 		glDrawElements(GL_LINE, 8, GL_UNSIGNED_INT, 0);
-		
-		//primera articulacion
-		transform = glm::mat4(); //buenas praticas pero no hace falta
-		transform = transformtemp;
-		transform = glm::translate(transform, glm::vec3(articulacion1.px, articulacion1.py, articulacion1.pz));
-		transform = glm::rotate(transform, (float)(articulacion1.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
-		transform = glm::rotate(transform, (float)(articulacion1.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
-		//guardamos la matriz
-		transformtemp = transform;
-		//escalamos
-		transform = glm::scale(transform, glm::vec3(articulacion1.sx, articulacion1.sy, articulacion1.sz));
-		//La cargo
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-		//dibujamos la esfera
-		glBindVertexArray(VAOEsfera);
-		glDrawArrays(GL_TRIANGLES, 0, 1080);
 
-		//primer brazo
-		transform = glm::mat4(); //buenas praticas pero no hace falta
-		transform = transformtemp;
-		transform = glm::translate(transform, glm::vec3(brazo1.px, brazo1.py, brazo1.pz));
-		//guardamos la matriz
-		transformtemp = transform;
-		//escalamos
-		transform = glm::scale(transform, glm::vec3(brazo1.sx, brazo1.sy, brazo1.sz));
-		//La cargo
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-		//dibujamos el cubo
-		glBindVertexArray(VAOCubo);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-		//segunda articulacion
-		transform = glm::mat4(); //buenas praticas pero no hace falta
-		transform = transformtemp;
-		transform = glm::translate(transform, glm::vec3(articulacion2.px, articulacion2.py, articulacion2.pz));
-		transform = glm::rotate(transform, (float)(articulacion2.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
-		transform = glm::rotate(transform, (float)(articulacion2.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
-		//guardamos la matriz
-		transformtemp = transform;
-		//escalamos
-		transform = glm::scale(transform, glm::vec3(articulacion2.sx, articulacion2.sy, articulacion2.sz));
-		//La cargo
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-		//dibujamos la esfera
-		glBindVertexArray(VAOEsfera);
-		glDrawArrays(GL_TRIANGLES, 0, 1080);
-
-		//segundo brazo
-		transform = glm::mat4(); //buenas praticas pero no hace falta
-		transform = transformtemp;
-		transform = glm::translate(transform, glm::vec3(brazo2.px, brazo2.py, brazo2.pz));
-		//guardamos la matriz
-		transformtemp = transform;
-		//escalamos
-		transform = glm::scale(transform, glm::vec3(brazo2.sx, brazo2.sy, brazo2.sz));
-		//La cargo
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-		//dibujamos el cubo
-		glBindVertexArray(VAOCubo);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
