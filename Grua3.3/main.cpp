@@ -337,6 +337,10 @@ int main() {
 	dibujaCubo();
 	dibujaEsfera();
 
+	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
+	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n");
+	printf("Primera articulacion:\n\ti: Arriba\n\tk: Abajo\n\tj: Rota izquierda\n\tl: Rota derecha\n");
+	printf("Segunda articulacion:\n\th: Arriba\n\tn: Abajo\n\tb: Rota izquierda\n\tm: Rota derecha\n");
 	// Lazo de la ventana mientras no la cierre
 	// -----------
 	while (!glfwWindowShouldClose(window)){
@@ -514,16 +518,16 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 	if (key == 88) {//Letra X, avanza la base atrás
 		velocidad -= 0.001;
 	}
-	if (key == 75) {//Letra K orienta el primer brazo a la izquierda
+	if (key == 74) {//Letra J orienta el primer brazo a la izquierda
 		articulacion1.angulo_trans += 1;
 	}
-	if (key == 59) {//Letra Ñ orienta el primer brazo a la derecha
+	if (key == 76) {//Letra L orienta el primer brazo a la derecha
 		articulacion1.angulo_trans -= 1;
 	}
-	if (key == 79) {//Letra O orienta el primer brazo arriba
+	if (key == 73) {//Letra I orienta el primer brazo arriba
 		if (articulacion1.angulo_trans_2 < 65) articulacion1.angulo_trans_2 += 1;
 	}
-	if (key == 76) {//Letra L orienta el primer brazo abajo
+	if (key == 75) {//Letra K orienta el primer brazo abajo
 		if (articulacion1.angulo_trans_2 > -65) articulacion1.angulo_trans_2 -= 1;
 	}
 	if (key == 66) {//Letra B orienta el segundo brazo a la izquierda
@@ -549,5 +553,4 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 		alfa = 0;
 		beta = 0;
 	}
-	printf("%f %f %f %d\n", base.px,base.py,base.pz, key);
 }
