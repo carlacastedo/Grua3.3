@@ -1,3 +1,4 @@
+//grua con OpenlGL 3.3 de Antonio Farina Elorza y Carla Castedo Pereira
 #include <glad.h>
 #include <glfw3.h>
 #include <stdio.h>
@@ -15,25 +16,23 @@
 //equivalencia a radianes
 #define ARADIANES 0.0174
 
-void processInput(GLFWwindow* window);
-
-//settings
-const unsigned int ANCHO = 800;
-const unsigned int ALTO = 800;
+//ancho y alto de la ventana
+unsigned int ANCHO = 800;
+unsigned int ALTO = 800;
 
 //velocidad de la grua
 float velocidad = 0;
-//camara
+//camara (por defecto alejada)
 unsigned int modoCamara = 0;
 
-extern GLuint setShaders(const char* nVertix, const char* nFrag);
 GLuint shaderProgram;
 
 unsigned int VAOEjes;
 unsigned int VAOCuadrado;
 unsigned int VAOCubo;
 unsigned int VAOEsfera;
-float alfa=0, beta=0;
+//angulos de giro de la camara alejada
+float alfa = 0, beta = 0;
 
 typedef struct {
 	float px, py, pz; //posición inicial
@@ -50,6 +49,9 @@ objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera};
 objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo};
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void processInput(GLFWwindow* window);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+extern GLuint setShaders(const char* nVertix, const char* nFrag);
 
 void camaraAlejada() {
 	glViewport(0, 0, ANCHO, ALTO);
@@ -57,6 +59,7 @@ void camaraAlejada() {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
+	//colocamos la camara, a donde mira y su orientacion
 	view = glm::lookAt(glm::vec3(4 * sin(alfa * ARADIANES) * cos(beta * ARADIANES), 4 * sin(beta * ARADIANES), 4 * cos(alfa * ARADIANES) * cos(beta * ARADIANES)), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, cos(beta * ARADIANES), .0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -109,14 +112,18 @@ void primeraPersona(float px, float py, float pz, float angulo) {
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
+//funcion que dibuja el objeto aplicandole las transformaciones previas y las suyas propias, devolviendo una matriz
+//con las transformaciones aplicadas
 glm::mat4 dibujaObjeto(objeto o, glm::mat4 transform) {
 	glm::mat4 transformtemp;
 	unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 	//trasladamos
 	transform = glm::translate(transform, glm::vec3(o.px, o.py, o.pz));
-	//giro de la base
+	//rotaciones con respecto al eje z
 	transform = glm::rotate(transform, (float)(o.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
-	//guardamos las tranformaciones realizadas en la matriz temporal para que las hereden las rotulas
+	//rotaciones con respecto al eje y (solo en las articulaciones)
+	transform = glm::rotate(transform, (float)(o.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
+	//guardamos las tranformaciones realizadas en la matriz temporal para que las los siguientes objetos
 	transformtemp = transform;
 	transform = glm::scale(transform, glm::vec3(o.sx, o.sy, o.sz));
 	//La cargo
@@ -125,15 +132,13 @@ glm::mat4 dibujaObjeto(objeto o, glm::mat4 transform) {
 		//dibujamos el cubo
 		glBindVertexArray(VAOCubo);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-	}
-	else if (*(o.listarender) == VAOEsfera) {
+	}else if (*(o.listarender) == VAOEsfera) {
 		//Dibujamos la esfera
 		glBindVertexArray(VAOEsfera);
 		glDrawArrays(GL_TRIANGLES, 0, 1080);
 	}
 	//Devolvemos la matriz para usarla en el siguiente fragmento
 	return transformtemp;
-	
 }
 
 void dibujaEsfera() {
@@ -172,7 +177,7 @@ void dibujaEjes() {
 		0.0f, 0.0f, 0.0f,	 1.0f, 1.0f, 1.0f,  // 0
 		.5f, 0.0f, 0.0f,	 1.0f, 0.0f, 0.0f, //x
 		0.0f, .5f, 0.0f,	 0.0f, 1.0f, 0.0f,// y
-		0.0f, .5f, 0.0f,	 0.0f, 0.0f, 1.0f, // z  
+		0.0f, .0f, 0.5f,	 0.0f, 0.0f, 1.0f, // z  
 		.5f , .5f, 0.5f,	1.0f, 1.0f, 1.0f // 1,1,1 bueno realmente la mitad
 	};
 	unsigned int indices[] = {  // empieza desde cero
@@ -345,7 +350,7 @@ int main() {
 		return -1;
 	}
 	glfwMakeContextCurrent(window);
-
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// glad
 	// ---------------------------------------
@@ -364,7 +369,7 @@ int main() {
 	dibujaCubo();
 	dibujaEsfera();
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
-	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n");
+	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ts: detiene la grua\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n\tr: resetea la grua a sus posiciones iniciales\n");
 	printf("Primera articulacion:\n\ti: Arriba\n\tk: Abajo\n\tj: Rota izquierda\n\tl: Rota derecha\n");
 	printf("Segunda articulacion:\n\th: Arriba\n\tn: Abajo\n\tb: Rota izquierda\n\tm: Rota derecha\n");
 	// Lazo de la ventana mientras no la cierre
@@ -387,14 +392,10 @@ int main() {
 			//camara en primera persona
 			case 1:
 				primeraPersona(base.px, base.py, base.pz, base.angulo_trans);
-				alfa = 0;
-				beta = 0;
 				break;
 			//camara en tercera persona
 			case 3:
 				terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
-				alfa = 0;
-				beta = 0;
 				break;
 			default: 
 				camaraAlejada();
@@ -422,8 +423,6 @@ int main() {
 		transform = dibujaObjeto(brazo1, transform);
 		transform = dibujaObjeto(articulacion2, transform);
 		transform = dibujaObjeto(brazo2, transform);
-		glBindVertexArray(VAOEjes);
-		glDrawElements(GL_LINE, 8, GL_UNSIGNED_INT, 0);
 
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -439,7 +438,6 @@ int main() {
 	glDeleteVertexArrays(1, &VAOEsfera);
 
 	// glfw: terminate, clearing all 
-
 	glfwTerminate();
 	return 0;
 }
@@ -451,65 +449,106 @@ void processInput(GLFWwindow* window){
 
 //funcion de teclado
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	//angulos de giro con respecto al eje x
-	if (key == 265 && modoCamara == 0) {//flecha arriba
-		beta += 1;
+	switch (key){
+		//MOVIMIENTO DE LA CAMARA ALEJADA
+		case 265://flecha arriba
+			if (modoCamara == 0) {
+				beta += 1;
+			}
+			break;
+		case 264://flecha abajo
+			if (modoCamara == 0) {
+				beta -= 1;
+			}
+			break;
+		case 262://flecha derecha
+			if (modoCamara == 0) {
+				alfa -= 1;
+			}
+			break;
+		case 263://flecha izquierda
+			if (modoCamara == 0) {
+				alfa += 1;
+			}
+			break;
+
+		//MOVIMIENTO DE LA GRUA
+		case 65://Letra A, orienta la base a la izquierda
+			base.angulo_trans += 1;
+			break;
+		case 68://Letra D, orienta la base a la derecha
+			base.angulo_trans -= 1;
+			break;
+		case 87://Letra W, aumenta la velocidad
+			if (action == GLFW_RELEASE) {
+				velocidad += 0.001;
+			}
+			break;
+		case 88://Letra X, reduce la velocidad
+			if (action == GLFW_RELEASE) {
+				velocidad -= 0.001;
+			}
+			break;
+		case 83://Letra S, detiene la grua
+			velocidad = 0;
+			break;
+		case 82://tecla R, reset de la grua a sus posiciones iniciales
+			base.angulo_trans = 0;
+			base.px = 0;
+			base.px = 0;
+			articulacion1.angulo_trans = 0;
+			articulacion1.angulo_trans_2 = 0;
+			articulacion2.angulo_trans = 0;
+			articulacion2.angulo_trans_2 = 0;
+			velocidad = 0;
+			alfa = 0;
+			beta = 0;
+			break;
+
+		//MOVIMIENTO DE LA PRIMERA ARTICULACION
+		case 74://Letra J orienta el primer brazo a la izquierda
+			articulacion1.angulo_trans += 1;
+			break;
+		case 76://Letra L orienta el primer brazo a la derecha
+			articulacion1.angulo_trans -= 1;
+			break;
+		case 73://Letra I orienta el primer brazo arriba
+			if (articulacion1.angulo_trans_2 < 65) articulacion1.angulo_trans_2 += 1;
+			break;
+		case 75://Letra K orienta el primer brazo abajo
+			if (articulacion1.angulo_trans_2 >- 65) articulacion1.angulo_trans_2 -= 1;
+			break;
+
+		//MOVIMIENTO DE LA SEGUNDA ARTICULACION
+		case 66://Letra B orienta el segundo brazo a la izquierda
+			articulacion2.angulo_trans += 1;
+			break;
+		case 77://Letra M orienta el segundo brazo a la derecha
+			articulacion2.angulo_trans -= 1;
+			break;
+		case 72://Letra H orienta el segundo brazo arriba
+			if (articulacion2.angulo_trans_2 < 135) articulacion2.angulo_trans_2 += 1;
+			break;
+		case 78://Letra N orienta el segundo brazo abajo
+			if (articulacion1.angulo_trans_2 > -135) articulacion2.angulo_trans_2 -= 1;
+			break;
+		//MODOS DE CAMARA
+		case 49://Numero 1, primera persona
+			modoCamara = 1;
+			break;
+		case 51://Numero 3, tercera persona
+			modoCamara = 3;
+			break;
+		case 48://Numero 0, camara alejada
+			modoCamara = 0;
+			break;
+		default:
+			break;
 	}
-	if (key == 264 && modoCamara == 0) {//flecha abajo
-		beta -= 1;
-	}
-	//angulos de giro con respecto al eje z
-	if (key == 262 && modoCamara == 0) {//flecha derecha
-		alfa -= 1;
-	}
-	if (key == 263 && modoCamara == 0) {//flecha izquierda
-		alfa += 1;
-	}
-	if (key == 65) {//Letra A, orienta la base a la izquierda
-		base.angulo_trans += 1;
-	}
-	if (key == 68) {//Letra D, orienta la base a la derecha
-		base.angulo_trans -= 1;
-	}
-	if (key == 87) {//Letra W, avanza la base hacia delante
-		velocidad += 0.001;
-	}
-	if (key == 88) {//Letra X, avanza la base atrás
-		velocidad -= 0.001;
-	}
-	if (key == 74) {//Letra J orienta el primer brazo a la izquierda
-		articulacion1.angulo_trans += 1;
-	}
-	if (key == 76) {//Letra L orienta el primer brazo a la derecha
-		articulacion1.angulo_trans -= 1;
-	}
-	if (key == 73) {//Letra I orienta el primer brazo arriba
-		if (articulacion1.angulo_trans_2 < 65) articulacion1.angulo_trans_2 += 1;
-	}
-	if (key == 75) {//Letra K orienta el primer brazo abajo
-		if (articulacion1.angulo_trans_2 > -65) articulacion1.angulo_trans_2 -= 1;
-	}
-	if (key == 66) {//Letra B orienta el segundo brazo a la izquierda
-		articulacion2.angulo_trans += 1;
-	}
-	if (key == 77) {//Letra M orienta el segundo brazo a la derecha
-		articulacion2.angulo_trans -= 1;
-	}
-	if (key == 72) {//Letra H orienta el segundo brazo arriba
-		if (articulacion2.angulo_trans_2 < 135) articulacion2.angulo_trans_2 += 1;
-	}
-	if (key == 78) {//Letra N orienta el segundo brazo abajo
-		if (articulacion2.angulo_trans_2 > -135) articulacion2.angulo_trans_2 -= 1;
-	}
-	//MODOS DE CAMARA
-	//si pulsamos el 1 cambiamos a primera persona
-	if (key == 49) modoCamara = 1;
-	//si pulsamos el 3 cambiamos a tercera persona
-	if (key == 51) modoCamara = 3;
-	//si pulsamos el 0 cambiamos a camara alejada
-	if (key == 48) {
-		modoCamara = 0;
-		alfa = 0;
-		beta = 0;
-	}
+}
+
+//funcion de reescalado
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+	ANCHO = width;
+	ALTO = height;
 }
