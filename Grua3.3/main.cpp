@@ -40,13 +40,14 @@ typedef struct {
 	float angulo_trans_2; //angulo giro z
 	float sx, sy, sz; //escalado en los dos ejes
 	unsigned int *listarender; //VAO
+	unsigned int numvertices; //Número de vérices del poligono
 } objeto;
 
-objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo};
-objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera};
-objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, &VAOCubo};
-objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera};
-objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo};
+objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo, 36};
+objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera, 1080};
+objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, &VAOCubo, 36};
+objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera, 1080};
+objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo, 36};
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
@@ -128,15 +129,8 @@ glm::mat4 dibujaObjeto(objeto o, glm::mat4 transform) {
 	transform = glm::scale(transform, glm::vec3(o.sx, o.sy, o.sz));
 	//La cargo
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-	if (*(o.listarender) == VAOCubo){
-		//dibujamos el cubo
-		glBindVertexArray(VAOCubo);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-	}else if (*(o.listarender) == VAOEsfera) {
-		//Dibujamos la esfera
-		glBindVertexArray(VAOEsfera);
-		glDrawArrays(GL_TRIANGLES, 0, 1080);
-	}
+	glBindVertexArray(*(o.listarender));
+	glDrawArrays(GL_TRIANGLES, 0, o.numvertices);
 	//Devolvemos la matriz para usarla en el siguiente fragmento
 	return transformtemp;
 }
@@ -215,9 +209,81 @@ void dibujaEjes() {
 };
 
 void dibujaCubo() {
-	unsigned int VBO, EBO;
+	unsigned int VBO;
 
 	float vertices[] = {
+		//Cara frontal
+		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
+		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
+		0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
+		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
+		-0.5f,  -0.5f,  0.5f, 0.8f, 0.68f, 0.0f, //3
+		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
+		  
+		 //Cara posterior
+		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
+		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
+		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //6
+		-0.5f, 0.5f,  -0.5f,   1.0f, 1.0, 0.88f, //4
+		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
+		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
+
+		 //Cara derecha
+		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
+		 0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
+		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
+		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
+		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
+		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //6
+
+		 //Cara izquierda
+		 -0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
+		 -0.5f, 0.5f,  -0.5f,   1.0f, 1.0, 0.88f, //4
+		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
+		 -0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
+		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
+		 -0.5f,  -0.5f,  0.5f, 0.8f, 0.68f, 0.0f, //3
+		 
+		 //Cara inferior
+		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
+		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //6
+		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
+		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
+		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
+		  -0.5f,  -0.5f,  0.5f, 0.8f, 0.68f, 0.0f, //3
+
+		 //Cara superior
+		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
+		 -0.5f, 0.5f,  -0.5f,   1.0f, 1.0, 0.88f, //4
+		 -0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
+		 0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
+		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
+		 - 0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f //0
+	};
+
+	glGenVertexArrays(1, &VAOCubo);
+	glGenBuffers(1, &VBO);
+	// bind the Vertex Array Object first.
+	glBindVertexArray(VAOCubo);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	// position Color
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &VBO);
+};
+
+/*
+float vertices[] = {
 		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
 		 0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
 		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
@@ -236,32 +302,7 @@ void dibujaCubo() {
 		7,6,2,7,2,3,	//cara inferior
 		5,4,0,1,5,0		//cara superior
 	};
-
-	glGenVertexArrays(1, &VAOCubo);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	// bind the Vertex Array Object first.
-	glBindVertexArray(VAOCubo);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// position Color
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
-};
+*/
 
 void dibujaCuadrado() {
 	unsigned int VBO, EBO;
