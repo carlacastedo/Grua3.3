@@ -348,7 +348,12 @@ void dibujaCuadrado() {
 };
 
 //funcion de dibujo del suelo
-void dibujaSuelo(glm::mat4 transform, unsigned int transformLoc) {
+void dibujaSuelo(GLuint shaderProgram) {
+	//creamos las matrices del modelo
+	glm::mat4 transform; //es la matriz de transformación
+	//la busco en el shader
+	unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	float i, j;
@@ -440,16 +445,13 @@ int main() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
 		seleccionaCamara();
-		//creamos las matrices del modelo
-		glm::mat4 transform; //es la matriz de transformación
-		//la busco en el shader
-		unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 		//Dibujo del suelo
-		dibujaSuelo(transform, transformLoc);
+		dibujaSuelo(shaderProgram);
 		actualizaPosicion();
 
 		//dibujamos la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glm::mat4 transform;
 		transform = glm::mat4(); //identity matrix
 		transform = dibujaObjeto(base, transform);
 		transform = dibujaObjeto(articulacion1, transform);
