@@ -15,6 +15,12 @@
 
 //equivalencia a radianes
 #define ARADIANES 0.0174
+#define ESCALADO_CAM 4
+#define ESCALADO_1P 0.5
+#define ESCALADO_3P 1
+#define ESCALADO_ENFOQUE 10
+#define ALTURA_1P 0.4
+#define ALTURA_3P 0.5
 
 //ancho y alto de la ventana
 unsigned int ANCHO = 800;
@@ -61,7 +67,7 @@ void camaraAlejada() {
 	//Cargamos la identidad
 	view = glm::mat4();
 	//colocamos la camara, a donde mira y su orientacion
-	view = glm::lookAt(glm::vec3(4 * sin(alfa * ARADIANES) * cos(beta * ARADIANES), 4 * sin(beta * ARADIANES), 4 * cos(alfa * ARADIANES) * cos(beta * ARADIANES)), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, cos(beta * ARADIANES), .0f));
+	view = glm::lookAt(glm::vec3(ESCALADO_CAM* sin(alfa * ARADIANES) * cos(beta * ARADIANES), ESCALADO_CAM * sin(beta * ARADIANES), ESCALADO_CAM * cos(alfa * ARADIANES) * cos(beta * ARADIANES)), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, cos(beta * ARADIANES), .0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 	//Matriz de proyección
@@ -79,8 +85,8 @@ void terceraPersona(float px, float py, float pz, float angulo) {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
-	view = glm::lookAt(glm::vec3(px - 1 * cos(angulo * ARADIANES), py - 1 * sin(angulo * ARADIANES), pz + 0.5),
-		glm::vec3(px + 10 * cos(angulo * ARADIANES), py + 10 * sin(angulo * ARADIANES), pz),
+	view = glm::lookAt(glm::vec3(px - ESCALADO_3P * cos(angulo * ARADIANES), py - ESCALADO_3P * sin(angulo * ARADIANES), pz + ALTURA_3P),
+		glm::vec3(px + ESCALADO_ENFOQUE * cos(angulo * ARADIANES), py + ESCALADO_ENFOQUE * sin(angulo * ARADIANES), pz),
 		glm::vec3(.0f, .0f, 1.0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -99,8 +105,8 @@ void primeraPersona(float px, float py, float pz, float angulo) {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
-	view = glm::lookAt(glm::vec3(px-0.5*cos(angulo*ARADIANES),py-0.5*sin(angulo*ARADIANES), pz+.4),
-		glm::vec3(px +10 * cos(angulo * ARADIANES), py + 10 * sin(angulo * ARADIANES), pz),
+	view = glm::lookAt(glm::vec3(px-ESCALADO_1P*cos(angulo*ARADIANES),py-ESCALADO_1P*sin(angulo*ARADIANES), pz + ALTURA_1P),
+		glm::vec3(px + ESCALADO_ENFOQUE * cos(angulo * ARADIANES), py + ESCALADO_ENFOQUE * sin(angulo * ARADIANES), pz),
 		glm::vec3(.0f, .0f, 1.0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -282,28 +288,6 @@ void dibujaCubo() {
 	glDeleteBuffers(1, &VBO);
 };
 
-/*
-float vertices[] = {
-		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
-		 0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
-		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
-		 -0.5f,  -0.5f,  0.5f, 0.8f, 0.68f, 0.0f, //3
-		-0.5f, 0.5f,  -0.5f,   1.0f, 1.0, 0.88f, //4
-		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
-		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //6
-		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f //7
-	};
-
-	unsigned int indices[] = {
-		0,2,1,0,3,2,	//cara frontal
-		7,5,6,4,5,7,	//cara posterior
-		5,1,2,5,2,6,	//cara derecha
-		0,4,7,0,7,3,	//cara izquierda
-		7,6,2,7,2,3,	//cara inferior
-		5,4,0,1,5,0		//cara superior
-	};
-*/
-
 void dibujaCuadrado() {
 	unsigned int VBO, EBO;
 
@@ -410,7 +394,7 @@ int main() {
 	dibujaCubo();
 	dibujaEsfera();
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
-	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ts: detiene la grua\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n\tr: resetea la grua a sus posiciones iniciales\n");
+	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ts: Detiene la grua\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n\tr: Resetea la grua a sus posiciones iniciales\n");
 	printf("Primera articulacion:\n\ti: Arriba\n\tk: Abajo\n\tj: Rota izquierda\n\tl: Rota derecha\n");
 	printf("Segunda articulacion:\n\th: Arriba\n\tn: Abajo\n\tb: Rota izquierda\n\tm: Rota derecha\n");
 	// Lazo de la ventana mientras no la cierre
@@ -443,7 +427,6 @@ int main() {
 		}
 		//creamos las matrices del modelo
 		glm::mat4 transform; //es la matriz de transformación
-		glm::mat4 transformtemp; //es la matriz de transformación
 		//la busco en el shader
 		unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 		//Dibujo del suelo
