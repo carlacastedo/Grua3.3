@@ -119,6 +119,26 @@ void primeraPersona(float px, float py, float pz, float angulo) {
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
+void seleccionaCamara() {
+	//modo de la camara
+	switch (modoCamara) {
+		//camara alejada
+	case 0:
+		camaraAlejada();
+		break;
+		//camara en primera persona
+	case 1:
+		primeraPersona(base.px, base.py, base.pz, base.angulo_trans);
+		break;
+		//camara en tercera persona
+	case 3:
+		terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
+		break;
+	default:
+		camaraAlejada();
+	}
+}
+
 //funcion que dibuja el objeto aplicandole las transformaciones previas y las suyas propias, devolviendo una matriz
 //con las transformaciones aplicadas
 glm::mat4 dibujaObjeto(objeto o, glm::mat4 transform) {
@@ -350,6 +370,17 @@ void dibujaSuelo(glm::mat4 transform, unsigned int transformLoc) {
 	}
 }
 
+void actualizaPosicion() {
+	//actualizacion de la posicion de la base con la velocidad
+	base.px += velocidad * cos(base.angulo_trans * ARADIANES);
+	base.py += velocidad * sin(base.angulo_trans * ARADIANES);
+	//Corte al salir del suelo
+	if (base.px >= 2.0 - base.sx / 2.0) base.px = -1.9 + base.sx / 2.0;
+	if (base.py >= 2.0 - base.sx / 2.0) base.py = -1.9 + base.sx / 2.0;
+	if (base.px <= -2.0 + base.sx / 2.0) base.px = 2.0 - base.sx / 2.0;
+	if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
+}
+
 void openGlInit() {
 	glClearDepth(1.0f); //Valor z-buffer
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //valor limpieza buffer color
@@ -408,38 +439,16 @@ int main() {
 		// ------
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
-		//modo de la camara
-		switch (modoCamara) {
-			//camara alejada
-			case 0: 
-				camaraAlejada();
-				break;
-			//camara en primera persona
-			case 1:
-				primeraPersona(base.px, base.py, base.pz, base.angulo_trans);
-				break;
-			//camara en tercera persona
-			case 3:
-				terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
-				break;
-			default: 
-				camaraAlejada();
-		}
+		seleccionaCamara();
 		//creamos las matrices del modelo
 		glm::mat4 transform; //es la matriz de transformación
 		//la busco en el shader
 		unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
 		//Dibujo del suelo
 		dibujaSuelo(transform, transformLoc);
-		//actualizacion de la posicion de la base con la velocidad
-		base.px += velocidad * cos(base.angulo_trans * ARADIANES);
-		base.py += velocidad * sin(base.angulo_trans * ARADIANES);
-		//Corte al salir del suelo
-		if (base.px >= 2.0 - base.sx / 2.0) base.px = -1.9 + base.sx / 2.0;
-		if (base.py >= 2.0 - base.sx / 2.0) base.py = -1.9 + base.sx / 2.0;
-		if (base.px <= -2.0 + base.sx / 2.0) base.px = 2.0 - base.sx / 2.0;
-		if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
-		//dibujamos la base de la grua
+		actualizaPosicion();
+
+		//dibujamos la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		transform = glm::mat4(); //identity matrix
 		transform = dibujaObjeto(base, transform);
