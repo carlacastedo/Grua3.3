@@ -52,22 +52,24 @@ typedef struct {
 	float sx, sy, sz; //escalado en los dos ejes
 	unsigned int *listarender; //VAO
 	unsigned int numvertices; //Número de vérices del poligono
+	unsigned int* textura;
 } objeto;
 
 typedef struct {
 	float x, y, z;
 }punto;
 
-objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo, 36};
-objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera, 1080};
-objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, &VAOCubo, 36};
-objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera, 1080};
-objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo, 36};
-
-punto luz;
-
 unsigned int sueloTex;
 unsigned int gruaTex;
+unsigned int articulacionTex;
+
+objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo, 36, &gruaTex};
+objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera, 1080, &articulacionTex};
+objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, &VAOCubo, 36, &gruaTex};
+objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera, 1080, &articulacionTex};
+objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo, 36, &gruaTex};
+
+punto luz;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
@@ -168,7 +170,8 @@ glm::mat4 dibujaObjeto(objeto o, glm::mat4 model) {
 	//guardamos las tranformaciones realizadas en la matriz temporal para que las los siguientes objetos
 	modeltemp = model;
 	model = glm::scale(model, glm::vec3(o.sx, o.sy, o.sz));
-	glBindTexture(GL_TEXTURE_2D, gruaTex);
+	glBindTexture(GL_TEXTURE_2D, *(o.textura));
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//La cargo
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glBindVertexArray(*(o.listarender));
@@ -193,8 +196,8 @@ void dibujaEsfera() {
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 	////Textura
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	//glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	//Vertices
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
@@ -551,8 +554,12 @@ int main() {
 	dibujaCuadrado();
 	dibujaCubo();
 	dibujaEsfera();
+
+	//Cargamos todas las texturas
 	cargaTextura(&sueloTex, "hierba.jpg");
-	cargaTextura(&gruaTex, "suelo.jpg");
+	cargaTextura(&gruaTex, "metal_amarillo.jpg");
+	cargaTextura(&articulacionTex, "metal.jpg");
+
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
 	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ts: Detiene la grua\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n\tr: Resetea la grua a sus posiciones iniciales\n");
 	printf("Primera articulacion:\n\ti: Arriba\n\tk: Abajo\n\tj: Rota izquierda\n\tl: Rota derecha\n");
