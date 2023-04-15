@@ -13,6 +13,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 //equivalencia a radianes
 #define ARADIANES 0.0174
 #define ESCALADO_CAM 4
@@ -61,6 +65,8 @@ objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera, 1080};
 objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo, 36};
 
 punto luz;
+
+unsigned int sueloTex;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
@@ -362,7 +368,7 @@ void dibujaSuelo(GLuint shaderProgram) {
 	//la busco en el shader
 	unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	float i, j;
 	float escalasuelo = 10;
@@ -374,11 +380,13 @@ void dibujaSuelo(GLuint shaderProgram) {
 			model = glm::translate(model, glm::vec3(i, j, 0.0f));
 			//escalamos
 			model = glm::scale(model, glm::vec3((1 / escalasuelo), (1 / escalasuelo), (1 / escalasuelo)));
+			glBindTexture(GL_TEXTURE_2D, sueloTex);
 			//La cargo
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 			//dibujamos el cuadrado
 			glBindVertexArray(VAOCuadrado);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
 }
@@ -394,18 +402,11 @@ void actualizaPosicion() {
 	if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
 }
 
-void openGlInit() {
-	glClearDepth(1.0f); //Valor z-buffer
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //valor limpieza buffer color
-	glEnable(GL_DEPTH_TEST); //z-buffer
-	//glEnable(GL_CULL_FACE); //ocultacion caras back
-	glCullFace(GL_BACK);
-}
 
 void iluminacion() {
 	//el color del objeto
 	unsigned int colorLoc = glGetUniformLocation(shaderProgram, "objectColor");
-	glUniform3f(colorLoc, 1.0f, 0.0f, 0.5f);
+	glUniform3f(colorLoc, 1.0f, 1.0f, 1.0f);
 	//el color de la luz ambiente 
 	unsigned int lightLoc = glGetUniformLocation(shaderProgram, "lightColor");
 	glUniform3f(lightLoc, 1.0f, 1.0f, 1.0f);
@@ -419,6 +420,40 @@ void iluminacion() {
 	unsigned int viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
 
 }
+
+void cargaTextura(unsigned int* textura,const char* ruta) {
+	int width, height, nrChannels;
+	//geneneramos la textura
+	glGenTextures(1, textura);
+	glBindTexture(GL_TEXTURE_2D, *textura);
+	//parametros wrap
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//parametros de escala
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	//cargamos la imagen
+	unsigned char* imagen = stbi_load(ruta, &width, &height, &nrChannels, 0);
+	if (imagen) {
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imagen);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	else {
+		printf("Fallo en la carga de la textura %s\n", imagen);
+	}
+	stbi_image_free(imagen);
+}
+
+void openGlInit() {
+	glClearDepth(1.0f); //Valor z-buffer
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //valor limpieza buffer color
+	glEnable(GL_DEPTH_TEST); //z-buffer
+	//glEnable(GL_CULL_FACE); //ocultacion caras back
+	glCullFace(GL_BACK);
+}
+
 
 int main() {
 	//glfw: initalize and configure
@@ -471,6 +506,11 @@ int main() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
 		seleccionaCamara();
+
+		cargaTextura(&sueloTex,"hierba.jpg");
+		glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
+		glActiveTexture(GL_TEXTURE0);
+
 		//Dibujo del suelo
 		dibujaSuelo(shaderProgram);
 		actualizaPosicion();
