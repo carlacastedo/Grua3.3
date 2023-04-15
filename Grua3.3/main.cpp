@@ -166,6 +166,8 @@ glm::mat4 dibujaObjeto(objeto o, glm::mat4 transform) {
 	glDrawArrays(GL_TRIANGLES, 0, o.numvertices);
 	//Devolvemos la matriz para usarla en el siguiente fragmento
 	return transformtemp;
+}void dibujarObjeto(GLuint shaderProgram) {
+
 }
 
 void dibujaEsfera() {
