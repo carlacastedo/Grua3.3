@@ -19,6 +19,7 @@
 #define ESCALADO_1P 0.5
 #define ESCALADO_3P 1
 #define ESCALADO_ENFOQUE 10
+#define ESCALADO_LUZ 1.25
 #define ALTURA_1P 0.4
 #define ALTURA_3P 0.5
 
@@ -148,24 +149,24 @@ void seleccionaCamara() {
 
 //funcion que dibuja el objeto aplicandole las transformaciones previas y las suyas propias, devolviendo una matriz
 //con las transformaciones aplicadas
-glm::mat4 dibujaObjeto(objeto o, glm::mat4 transform) {
-	glm::mat4 transformtemp;
-	unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+glm::mat4 dibujaObjeto(objeto o, glm::mat4 model) {
+	glm::mat4 modeltemp;
+	unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
 	//trasladamos
-	transform = glm::translate(transform, glm::vec3(o.px, o.py, o.pz));
+	model = glm::translate(model, glm::vec3(o.px, o.py, o.pz));
 	//rotaciones con respecto al eje z
-	transform = glm::rotate(transform, (float)(o.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::rotate(model, (float)(o.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
 	//rotaciones con respecto al eje y (solo en las articulaciones)
-	transform = glm::rotate(transform, (float)(o.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, (float)(o.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
 	//guardamos las tranformaciones realizadas en la matriz temporal para que las los siguientes objetos
-	transformtemp = transform;
-	transform = glm::scale(transform, glm::vec3(o.sx, o.sy, o.sz));
+	modeltemp = model;
+	model = glm::scale(model, glm::vec3(o.sx, o.sy, o.sz));
 	//La cargo
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glBindVertexArray(*(o.listarender));
 	glDrawArrays(GL_TRIANGLES, 0, o.numvertices);
 	//Devolvemos la matriz para usarla en el siguiente fragmento
-	return transformtemp;
+	return modeltemp;
 }
 
 void dibujaEsfera() {
@@ -357,9 +358,9 @@ void dibujaCuadrado() {
 //funcion de dibujo del suelo
 void dibujaSuelo(GLuint shaderProgram) {
 	//creamos las matrices del modelo
-	glm::mat4 transform; //es la matriz de transformación
+	glm::mat4 model; //es la matriz de transformación
 	//la busco en el shader
-	unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+	unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -368,13 +369,13 @@ void dibujaSuelo(GLuint shaderProgram) {
 	for (i = -2; i <= 2; i += (1 / escalasuelo)) {
 		for (j = -2; j <= 2; j += (1 / escalasuelo)) {
 			//Calculo la matriz
-			transform = glm::mat4(); //identity matrix
+			model = glm::mat4(); //identity matrix
 			//trasladamos para dibujar cada cuadrado
-			transform = glm::translate(transform, glm::vec3(i, j, 0.0f));
+			model = glm::translate(model, glm::vec3(i, j, 0.0f));
 			//escalamos
-			transform = glm::scale(transform, glm::vec3((1 / escalasuelo), (1 / escalasuelo), (1 / escalasuelo)));
+			model = glm::scale(model, glm::vec3((1 / escalasuelo), (1 / escalasuelo), (1 / escalasuelo)));
 			//La cargo
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 			//dibujamos el cuadrado
 			glBindVertexArray(VAOCuadrado);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -402,15 +403,20 @@ void openGlInit() {
 }
 
 void iluminacion() {
-	//color de la luz ambiente en el shader
-	GLuint luzLoc = glGetUniformLocation(shaderProgram, "luzColor");
-	glUniform3f(luzLoc, 1.0f, 1.0f, 1.0f);
-	//luz difusa
-	GLuint posicionLuzLoc = glGetUniformLocation(shaderProgram, "luzPos");
-	glUniform3f(posicionLuzLoc, luz.x, luz.y, luz.z + ESCALADO_CAM);
+	//el color del objeto
+	unsigned int colorLoc = glGetUniformLocation(shaderProgram, "objectColor");
+	glUniform3f(colorLoc, 1.0f, 0.0f, 0.5f);
+	//el color de la luz ambiente 
+	unsigned int lightLoc = glGetUniformLocation(shaderProgram, "lightColor");
+	glUniform3f(lightLoc, 1.0f, 1.0f, 1.0f);
 
-	unsigned int viewPosLoc = glGetUniformLocation(shaderProgram, "vistaPos");
-	glUniform3f(viewPosLoc, 0.0f, 0.0f, 10.0f);
+	//luz difusa 
+	unsigned int lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
+	glUniform3f(lightPosLoc, (float)luz.x, (float)luz.y, (float)luz.z + ESCALADO_LUZ);
+
+	//luz especular
+	//la posicion del usuario/camara (0,0,10) en nuestro caso
+	unsigned int viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
 
 }
 
@@ -471,20 +477,27 @@ int main() {
 
 		//dibujamos la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glm::mat4 transform;
-		transform = glm::mat4(); //identity matrix
-		transform = dibujaObjeto(base, transform);
-		transform = dibujaObjeto(articulacion1, transform);
-		transform = dibujaObjeto(brazo1, transform);
-		transform = dibujaObjeto(articulacion2, transform);
-		transform = dibujaObjeto(brazo2, transform);
+		glm::mat4 model;
+		model = glm::mat4(); //identity matrix
+		model = dibujaObjeto(base, model);
+		model = dibujaObjeto(articulacion1, model);
+		model = dibujaObjeto(brazo1, model);
+		model = dibujaObjeto(articulacion2, model);
+		model = dibujaObjeto(brazo2, model);
 
-		const float* matrizTransformacionesVector = (const float*) glm::value_ptr(transform);
+		const float* pSource = (const float*)glm::value_ptr(model);
+		double dArray[16] = { 0.0 };
+		for (int i = 0; i < 16; ++i) {
+			dArray[i] = pSource[i];
+		}
 
-		luz.x = (float) matrizTransformacionesVector[12];
-		luz.y = (float)matrizTransformacionesVector[13];
-		luz.z = (float)matrizTransformacionesVector[14];
+		luz.x = (float)dArray[12];
+		luz.y = (float)dArray[13];
+		luz.z = (float)dArray[14];
 		iluminacion();
+
+		glBindVertexArray(0);
+
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
