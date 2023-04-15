@@ -251,7 +251,7 @@ void dibujaEjes() {
 void dibujaCubo() {
 	unsigned int VBO;
 
-	float vertices[] = {
+	/*float vertices[] = {
 		//Cara frontal
 		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
 		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
@@ -299,6 +299,56 @@ void dibujaCubo() {
 		 0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
 		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
 		 - 0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f //0
+	};*/
+	float vertices[] = {
+		//Cara frontal
+		//3 coordenadas de vertices, 3 de normales y 2 de textura
+		-0.5f, 0.5f,  0.5f,   0.0f, 0.0f, 1.0f, 0.0f, 1.0f, //0
+		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, //2
+		0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f, //1
+		-0.5f, 0.5f,  0.5f,   0.0f, 0.0f, 1.0f, 0.0f, 1.0f, //0
+		-0.5f,  -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //3
+		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f,//2
+
+		//Cara posterior
+		-0.5f,  -0.5f,  -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, //7
+		0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, //5
+		0.5f,  -0.5f,  -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, //6
+	   -0.5f, 0.5f,  -0.5f,   0.0f, 0.0f, -1.0f, 1.0f, 1.0f, //4
+		0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, //5
+		-0.5f,  -0.5f,  -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, //7
+
+		//Cara derecha
+		0.5f, 0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //5
+		0.5f, 0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, //1
+		0.5f,  -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //2
+		0.5f, 0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,//5
+		0.5f,  -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //2
+		0.5f,  -0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //6
+
+		//Cara izquierda
+		-0.5f, 0.5f,  0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //0
+		-0.5f, 0.5f,  -0.5f,   -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, //4
+		-0.5f,  -0.5f,  -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //7
+		-0.5f, 0.5f,  0.5f,  -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //0
+		-0.5f,  -0.5f,  -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //7
+		-0.5f,  -0.5f,  0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //3
+
+		//Cara inferior
+		-0.5f,  -0.5f,  -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, //7
+		0.5f,  -0.5f,  -0.5f,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f, //6
+		0.5f,  -0.5f,  0.5f,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f, //2
+		-0.5f,  -0.5f,  -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, //7
+		0.5f,  -0.5f,  0.5f,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f,//2
+		 -0.5f,  -0.5f,  0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,//3
+
+		 //Cara superior
+		 0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //5
+		 -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, //4
+		 -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, //0
+		 0.5f, 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, //1
+		 0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //5
+		 -0.5f, 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f //0
 	};
 
 	glGenVertexArrays(1, &VAOCubo);
@@ -309,13 +359,17 @@ void dibujaCubo() {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	//posicion
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// position Color
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	//normales
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	//texturas
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
