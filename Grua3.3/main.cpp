@@ -434,7 +434,7 @@ void dibujaSuelo(GLuint shaderProgram) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	float i, j;
-	float escalasuelo = 5;
+	float escalasuelo = 1;
 	for (i = -2; i <= 2; i += (1 / escalasuelo)) {
 		for (j = -2; j <= 2; j += (1 / escalasuelo)) {
 			//Calculo la matriz
@@ -464,7 +464,6 @@ void actualizaPosicion() {
 	if (base.px <= -2.0 + base.sx / 2.0) base.px = 2.0 - base.sx / 2.0;
 	if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
 }
-
 
 void iluminacion() {
 	//el color del objeto
@@ -552,6 +551,8 @@ int main() {
 	dibujaCuadrado();
 	dibujaCubo();
 	dibujaEsfera();
+	cargaTextura(&sueloTex, "hierba.jpg");
+	cargaTextura(&gruaTex, "suelo.jpg");
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
 	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ts: Detiene la grua\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n\tr: Resetea la grua a sus posiciones iniciales\n");
 	printf("Primera articulacion:\n\ti: Arriba\n\tk: Abajo\n\tj: Rota izquierda\n\tl: Rota derecha\n");
@@ -568,10 +569,7 @@ int main() {
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
 		seleccionaCamara();
-
-		cargaTextura(&sueloTex,"hierba.jpg");
-		cargaTextura(&gruaTex, "suelo.jpg");
-		//glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
+		
 		glActiveTexture(GL_TEXTURE0);
 
 		//Dibujo del suelo
@@ -656,10 +654,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 			base.angulo_trans -= 1;
 			break;
 		case 87://Letra W, aumenta la velocidad
-			velocidad += 0.001;
+			velocidad += 0.0001;
 			break;
 		case 88://Letra X, reduce la velocidad
-			velocidad -= 0.001;
+			velocidad -= 0.0001;
 			break;
 		case 83://Letra S, detiene la grua
 			velocidad = 0;
