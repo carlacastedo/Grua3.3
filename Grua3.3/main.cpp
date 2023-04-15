@@ -49,16 +49,23 @@ typedef struct {
 	unsigned int numvertices; //Número de vérices del poligono
 } objeto;
 
+typedef struct {
+	float x, y, z;
+}punto;
+
 objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo, 36};
 objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera, 1080};
 objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, &VAOCubo, 36};
 objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera, 1080};
 objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo, 36};
 
+punto luz;
+
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 extern GLuint setShaders(const char* nVertix, const char* nFrag);
+
 
 void camaraAlejada() {
 	glViewport(0, 0, ANCHO, ALTO);
@@ -370,7 +377,7 @@ void dibujaSuelo(GLuint shaderProgram) {
 			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
 			//dibujamos el cuadrado
 			glBindVertexArray(VAOCuadrado);
-			glDrawElements(GL_TRIANGLES, 6,GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		}
 	}
 }
@@ -392,6 +399,19 @@ void openGlInit() {
 	glEnable(GL_DEPTH_TEST); //z-buffer
 	//glEnable(GL_CULL_FACE); //ocultacion caras back
 	glCullFace(GL_BACK);
+}
+
+void iluminacion() {
+	//color de la luz ambiente en el shader
+	GLuint luzLoc = glGetUniformLocation(shaderProgram, "luzColor");
+	glUniform3f(luzLoc, 1.0f, 1.0f, 1.0f);
+	//luz difusa
+	GLuint posicionLuzLoc = glGetUniformLocation(shaderProgram, "luzPos");
+	glUniform3f(posicionLuzLoc, luz.x, luz.y, luz.z + ESCALADO_CAM);
+
+	unsigned int viewPosLoc = glGetUniformLocation(shaderProgram, "vistaPos");
+	glUniform3f(viewPosLoc, 0.0f, 0.0f, 10.0f);
+
 }
 
 int main() {
@@ -459,7 +479,12 @@ int main() {
 		transform = dibujaObjeto(articulacion2, transform);
 		transform = dibujaObjeto(brazo2, transform);
 
+		const float* matrizTransformacionesVector = (const float*) glm::value_ptr(transform);
 
+		luz.x = (float) matrizTransformacionesVector[12];
+		luz.y = (float)matrizTransformacionesVector[13];
+		luz.z = (float)matrizTransformacionesVector[14];
+		iluminacion();
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
