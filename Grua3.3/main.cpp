@@ -67,6 +67,7 @@ objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo, 36};
 punto luz;
 
 unsigned int sueloTex;
+unsigned int gruaTex;
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
@@ -167,10 +168,12 @@ glm::mat4 dibujaObjeto(objeto o, glm::mat4 model) {
 	//guardamos las tranformaciones realizadas en la matriz temporal para que las los siguientes objetos
 	modeltemp = model;
 	model = glm::scale(model, glm::vec3(o.sx, o.sy, o.sz));
+	glBindTexture(GL_TEXTURE_2D, gruaTex);
 	//La cargo
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glBindVertexArray(*(o.listarender));
 	glDrawArrays(GL_TRIANGLES, 0, o.numvertices);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	//Devolvemos la matriz para usarla en el siguiente fragmento
 	return modeltemp;
 }
@@ -567,7 +570,8 @@ int main() {
 		seleccionaCamara();
 
 		cargaTextura(&sueloTex,"hierba.jpg");
-		glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
+		cargaTextura(&gruaTex, "suelo.jpg");
+		//glUniform1i(glGetUniformLocation(shaderProgram, "texture1"), 0);
 		glActiveTexture(GL_TEXTURE0);
 
 		//Dibujo del suelo
