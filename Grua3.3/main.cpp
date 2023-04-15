@@ -656,14 +656,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 			base.angulo_trans -= 1;
 			break;
 		case 87://Letra W, aumenta la velocidad
-			if (action == GLFW_RELEASE) {
-				velocidad += 0.001;
-			}
+			velocidad += 0.001;
 			break;
 		case 88://Letra X, reduce la velocidad
-			if (action == GLFW_RELEASE) {
-				velocidad -= 0.001;
-			}
+			velocidad -= 0.001;
 			break;
 		case 83://Letra S, detiene la grua
 			velocidad = 0;
