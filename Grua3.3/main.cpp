@@ -88,7 +88,7 @@ void camaraAlejada() {
 	glm::mat4 projection;
 	//Cargamos la identidad
 	projection = glm::mat4();
-	projection = glm::perspective(45.0f,(float) ANCHO/ (float) ALTO, 0.01f, 10.0f);
+	projection = glm::perspective(45.0f,(float) ANCHO/ (float) ALTO, 0.01f, 6.0f);
 	unsigned int projectionLoc = glad_glGetUniformLocation(shaderProgram, "projection");
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 }
@@ -327,10 +327,11 @@ void dibujaCuadrado() {
 
 	//vertices del cuadrado
 	float vertices[] = {
-		-0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 1.0f, //0
-		 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, //1
-		 0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 1.0f, //2
-		 -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f //3
+		//3 coordenadas de vertices, 3 de color y 2 de textura
+		-0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, //0
+		 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, //1
+		 0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f, //2
+		 -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f //3
 	};
 
 	//indices
@@ -348,12 +349,17 @@ void dibujaCuadrado() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	//posicion
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	// position Color
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	//color
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+
+	//textura
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -371,7 +377,7 @@ void dibujaSuelo(GLuint shaderProgram) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	float i, j;
-	float escalasuelo = 10;
+	float escalasuelo = 5;
 	for (i = -2; i <= 2; i += (1 / escalasuelo)) {
 		for (j = -2; j <= 2; j += (1 / escalasuelo)) {
 			//Calculo la matriz
@@ -439,8 +445,7 @@ void cargaTextura(unsigned int* textura,const char* ruta) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imagen);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
-	}
-	else {
+	} else {
 		printf("Fallo en la carga de la textura %s\n", imagen);
 	}
 	stbi_image_free(imagen);
