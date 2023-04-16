@@ -5,7 +5,7 @@
 #include <math.h> 
 #include <iostream>
 #include <lecturaShader.h>
-#include "esfera.h"
+#include "geometrias.h"
 
 
 //transformaciones
@@ -28,20 +28,20 @@
 #define ALTURA_3P 0.5
 
 //ancho y alto de la ventana
-unsigned int ANCHO = 800;
-unsigned int ALTO = 800;
+GLuint ANCHO = 800;
+GLuint ALTO = 800;
 
 //velocidad de la grua
 float velocidad = 0;
 //camara (por defecto alejada)
-unsigned int modoCamara = 0;
+GLuint modoCamara = 0;
 
 GLuint shaderProgram;
 
-unsigned int VAOEjes;
-unsigned int VAOCuadrado;
-unsigned int VAOCubo;
-unsigned int VAOEsfera;
+GLuint VAOEjes;
+GLuint VAOCuadrado;
+GLuint VAOCubo;
+GLuint VAOEsfera;
 //angulos de giro de la camara alejada
 float alfa = 0, beta = 0;
 
@@ -50,18 +50,18 @@ typedef struct {
 	float angulo_trans; //angulo giro x
 	float angulo_trans_2; //angulo giro z
 	float sx, sy, sz; //escalado en los dos ejes
-	unsigned int *listarender; //VAO
-	unsigned int numvertices; //Número de vérices del poligono
-	unsigned int* textura;
+	GLuint *listarender; //VAO
+	GLuint numvertices; //Número de vertices del poligono
+	GLuint* textura; //textura asociada
 } objeto;
 
 typedef struct {
 	float x, y, z;
 }punto;
 
-unsigned int sueloTex;
-unsigned int gruaTex;
-unsigned int articulacionTex;
+GLuint sueloTex;
+GLuint gruaTex;
+GLuint articulacionTex;
 
 objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo, 36, &gruaTex};
 objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera, 1080, &articulacionTex};
@@ -181,6 +181,32 @@ glm::mat4 dibujaObjeto(objeto o, glm::mat4 model) {
 	return modeltemp;
 }
 
+//funcion que crea el VAO en la variable VAO a partir del array de vertices
+void creaVAO(float* vertices, GLuint* VAO) {
+	unsigned int VBO;
+	glGenVertexArrays(1, VAO);
+	glGenBuffers(1, &VBO);
+	// bind the Vertex Array Object first.
+	glBindVertexArray(*VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//Vertices
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+	glEnableVertexAttribArray(0);
+	//Normales
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	//Textura
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	glDeleteBuffers(1, &VBO);
+}
+
 void dibujaEsfera() {
 	unsigned int VBO;
 
@@ -255,75 +281,22 @@ void dibujaEjes() {
 
 void dibujaCubo() {
 	unsigned int VBO;
-	float vertices[] = {
-		//Cara frontal
-		//3 coordenadas de vertices, 3 de normales y 2 de textura
-		-0.5f, 0.5f,  0.5f,   0.0f, 0.0f, 1.0f, 0.0f, 1.0f, //0
-		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, //2
-		0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f, //1
-		-0.5f, 0.5f,  0.5f,   0.0f, 0.0f, 1.0f, 0.0f, 1.0f, //0
-		-0.5f,  -0.5f,  0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //3
-		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f,//2
-
-		//Cara posterior
-		-0.5f,  -0.5f,  -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, //7
-		0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, //5
-		0.5f,  -0.5f,  -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, //6
-	   -0.5f, 0.5f,  -0.5f,   0.0f, 0.0f, -1.0f, 1.0f, 1.0f, //4
-		0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, //5
-		-0.5f,  -0.5f,  -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, //7
-
-		//Cara derecha
-		0.5f, 0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //5
-		0.5f, 0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, //1
-		0.5f,  -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //2
-		0.5f, 0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,//5
-		0.5f,  -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //2
-		0.5f,  -0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //6
-
-		//Cara izquierda
-		-0.5f, 0.5f,  0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //0
-		-0.5f, 0.5f,  -0.5f,   -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, //4
-		-0.5f,  -0.5f,  -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //7
-		-0.5f, 0.5f,  0.5f,  -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //0
-		-0.5f,  -0.5f,  -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //7
-		-0.5f,  -0.5f,  0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //3
-
-		//Cara inferior
-		-0.5f,  -0.5f,  -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, //7
-		0.5f,  -0.5f,  -0.5f,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f, //6
-		0.5f,  -0.5f,  0.5f,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f, //2
-		-0.5f,  -0.5f,  -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, //7
-		0.5f,  -0.5f,  0.5f,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f,//2
-		 -0.5f,  -0.5f,  0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,//3
-
-		 //Cara superior
-		 0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //5
-		 -0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, //4
-		 -0.5f, 0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, //0
-		 0.5f, 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, //1
-		 0.5f, 0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, //5
-		 -0.5f, 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f //0
-	};
-
 	glGenVertexArrays(1, &VAOCubo);
 	glGenBuffers(1, &VBO);
 	// bind the Vertex Array Object first.
 	glBindVertexArray(VAOCubo);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cubo), vertices_cubo, GL_STATIC_DRAW);
 
-	//posicion
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	//Vertices
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 	glEnableVertexAttribArray(0);
-
-	//normales
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	//Normales
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
-
-	//texturas
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	//Textura
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -333,35 +306,24 @@ void dibujaCubo() {
 
 void dibujaCuadrado() {
 	unsigned int VBO;
-
 	//vertices del cuadrado
-	float vertices[] = {
-		//3 coordenadas de vertices, 3 de normales y 2 de textura
-		-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //0
-		 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, //1
-		 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f, //2
-		 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f, //2
-		 -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, //3
-		 -0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f //0
-	};
+
 	glGenVertexArrays(1, &VAOCuadrado);
 	glGenBuffers(1, &VBO);
 	// bind the Vertex Array Object first.
 	glBindVertexArray(VAOCuadrado);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cuadrado), vertices_cuadrado, GL_STATIC_DRAW);
 
-	//posicion
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	//Vertices
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 	glEnableVertexAttribArray(0);
-
-	//normales
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	//Normales
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
-
-	//textura
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	//Textura
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -487,7 +449,12 @@ int main() {
 	//generarShader();
 	shaderProgram = setShaders("shader.vert", "shader.frag");
 	glUseProgram(shaderProgram);
-	dibujaEjes();
+	//dibujaEjes();
+	/////////////DEBERIA DE FUNCIONAR CON ESTO PERO NO SE POR QUE NO VA///////////////////////////
+	/*creaVAO(vertices_cuadrado, &VAOCuadrado);
+	creaVAO(vertices_esfera, &VAOEsfera);
+	creaVAO(vertices_cubo, &VAOCubo);*/
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	dibujaCuadrado();
 	dibujaCubo();
 	dibujaEsfera();

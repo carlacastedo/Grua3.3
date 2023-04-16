@@ -138,7 +138,7 @@
     <None Include="shader.vert" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="esfera.h" />
+    <ClInclude Include="geometrias.h" />
     <ClInclude Include="lecturaShader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

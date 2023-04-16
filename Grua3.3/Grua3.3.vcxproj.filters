@@ -34,7 +34,7 @@
     <ClInclude Include="lecturaShader.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
-    <ClInclude Include="esfera.h">
+    <ClInclude Include="geometrias.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>
