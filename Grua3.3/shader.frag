@@ -20,7 +20,7 @@ void main(){
 	vec3 ld = normalize(-lightPos);
 	ld = luzDir;
 	vec3 fd = normalize(vec3((FragPos - lightPos)));
-	if(acos(dot(fd,ld)) < radians(13)){
+	if(acos(dot(fd,ld)) < radians(12)){
 		//Difusa
 		vec3 norm = normalize(Normal);
 		vec3 lightDir = normalize(lightPos - FragPos);
@@ -28,7 +28,7 @@ void main(){
 		vec3 diffuse = diff * lightColor;
 		
 		//Especular
-		float specularStrength = 0.0;
+		float specularStrength = 1.0;
 		vec3 viewDir = normalize(viewPos - FragPos);
 		vec3 reflectDir = reflect(-lightDir, norm);
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 128);
