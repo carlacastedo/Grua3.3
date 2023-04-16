@@ -65,9 +65,9 @@ unsigned int articulacionTex;
 
 objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo, 36, &gruaTex};
 objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera, 1080, &articulacionTex};
-objeto brazo1 = {0, 0, 0.10, 0, 0, 0.05, 0.05, 0.3, &VAOCubo, 36, &gruaTex};
-objeto articulacion2 = {0, 0, 0.15, 0, 0, 0.05, 0.05, 0.05, &VAOEsfera, 1080, &articulacionTex};
-objeto brazo2 = { 0, 0, 0.11, 0, 0, 0.03, 0.03, 0.2, &VAOCubo, 36, &gruaTex};
+objeto brazo1 = {0, 0, 0.20, 0, 0, 0.05, 0.05, 0.45, &VAOCubo, 36, &gruaTex};
+objeto articulacion2 = {0, 0, 0.25, 0, 0, 0.04, 0.04, 0.04, &VAOEsfera, 1080, &articulacionTex};
+objeto brazo2 = { 0, 0, 0.15, 0, 0, 0.03, 0.03, 0.25, &VAOCubo, 36, &gruaTex};
 
 punto luz;
 
@@ -192,16 +192,15 @@ void dibujaEsfera() {
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_esfera), vertices_esfera, GL_STATIC_DRAW);
 
-	//Normales (COLOR)
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	////Textura
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
 	//Vertices
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 	glEnableVertexAttribArray(0);
+	//Normales
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	//Textura
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -256,56 +255,6 @@ void dibujaEjes() {
 
 void dibujaCubo() {
 	unsigned int VBO;
-
-	/*float vertices[] = {
-		//Cara frontal
-		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
-		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
-		0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
-		-0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
-		-0.5f,  -0.5f,  0.5f, 0.8f, 0.68f, 0.0f, //3
-		0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
-		  
-		 //Cara posterior
-		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
-		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
-		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //6
-		-0.5f, 0.5f,  -0.5f,   1.0f, 1.0, 0.88f, //4
-		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
-		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
-
-		 //Cara derecha
-		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
-		 0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
-		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
-		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
-		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
-		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //6
-
-		 //Cara izquierda
-		 -0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
-		 -0.5f, 0.5f,  -0.5f,   1.0f, 1.0, 0.88f, //4
-		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
-		 -0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
-		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
-		 -0.5f,  -0.5f,  0.5f, 0.8f, 0.68f, 0.0f, //3
-		 
-		 //Cara inferior
-		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
-		 0.5f,  -0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //6
-		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
-		 -0.5f,  -0.5f,  -0.5f, 1.0f, 0.4f, 0.2f, //7
-		 0.5f,  -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //2
-		  -0.5f,  -0.5f,  0.5f, 0.8f, 0.68f, 0.0f, //3
-
-		 //Cara superior
-		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
-		 -0.5f, 0.5f,  -0.5f,   1.0f, 1.0, 0.88f, //4
-		 -0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f, //0
-		 0.5f, 0.5f,  0.5f,  0.0f, 0.0f, 1.0f, //1
-		 0.5f, 0.5f,  -0.5f,  0.0f, 0.0f, 1.0f, //5
-		 - 0.5f, 0.5f,  0.5f,   1.0f, 1.0f, 0.4f //0
-	};*/
 	float vertices[] = {
 		//Cara frontal
 		//3 coordenadas de vertices, 3 de normales y 2 de textura
@@ -327,10 +276,10 @@ void dibujaCubo() {
 		//Cara derecha
 		0.5f, 0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //5
 		0.5f, 0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, //1
-		0.5f,  -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //2
+		0.5f,  -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //2
 		0.5f, 0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,//5
-		0.5f,  -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //2
-		0.5f,  -0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //6
+		0.5f,  -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f, //2
+		0.5f,  -0.5f,  -0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f, //6
 
 		//Cara izquierda
 		-0.5f, 0.5f,  0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, //0
@@ -383,37 +332,31 @@ void dibujaCubo() {
 };
 
 void dibujaCuadrado() {
-	unsigned int VBO, EBO;
+	unsigned int VBO;
 
 	//vertices del cuadrado
 	float vertices[] = {
-		//3 coordenadas de vertices, 3 de color y 2 de textura
-		-0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, //0
+		//3 coordenadas de vertices, 3 de normales y 2 de textura
+		-0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f, //0
 		 0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, //1
-		 0.5f,  0.5f,  0.0f,  0.0f, 1.0f, 1.0f, 1.0f, 1.0f, //2
-		 -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f //3
+		 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f, //2
+		 0.5f,  0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f, //2
+		 -0.5f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, //3
+		 -0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f //0
 	};
-
-	//indices
-	unsigned int indices[] = { 0, 1, 2, 2, 3, 0 };
-
 	glGenVertexArrays(1, &VAOCuadrado);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
 	// bind the Vertex Array Object first.
 	glBindVertexArray(VAOCuadrado);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 	//posicion
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 
-	//color
+	//normales
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
@@ -424,7 +367,6 @@ void dibujaCuadrado() {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 };
 
 //funcion de dibujo del suelo
@@ -433,13 +375,13 @@ void dibujaSuelo(GLuint shaderProgram) {
 	glm::mat4 model; //es la matriz de transformación
 	//la busco en el shader
 	unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
-
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	float i, j;
 	float escalasuelo = 1;
-	for (i = -2; i <= 2; i += (1 / escalasuelo)) {
-		for (j = -2; j <= 2; j += (1 / escalasuelo)) {
+	int limite = 2;
+	for (i = -limite; i <= limite; i += (1 / escalasuelo)) {
+		for (j = -limite; j <= limite; j += (1 / escalasuelo)) {
 			//Calculo la matriz
 			model = glm::mat4(); //identity matrix
 			//trasladamos para dibujar cada cuadrado
@@ -451,7 +393,7 @@ void dibujaSuelo(GLuint shaderProgram) {
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 			//dibujamos el cuadrado
 			glBindVertexArray(VAOCuadrado);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
@@ -462,28 +404,24 @@ void actualizaPosicion() {
 	base.px += velocidad * cos(base.angulo_trans * ARADIANES);
 	base.py += velocidad * sin(base.angulo_trans * ARADIANES);
 	//Corte al salir del suelo
-	if (base.px >= 2.0 - base.sx / 2.0) base.px = -1.9 + base.sx / 2.0;
-	if (base.py >= 2.0 - base.sx / 2.0) base.py = -1.9 + base.sx / 2.0;
-	if (base.px <= -2.0 + base.sx / 2.0) base.px = 2.0 - base.sx / 2.0;
-	if (base.py <= -2.0 + base.sx / 2.0) base.py = 2.0 - base.sx / 2.0;
+	if (base.px >= 2.5 - base.sx / 2.0) base.px = -2.4 + base.sx / 2.0;
+	if (base.py >= 2.5 - base.sx / 2.0) base.py = -2.4 + base.sx / 2.0;
+	if (base.px <= -2.5 + base.sx / 2.0) base.px = 2.5 - base.sx / 2.0;
+	if (base.py <= -2.5 + base.sx / 2.0) base.py = 2.5 - base.sx / 2.0;
 }
 
 void iluminacion() {
 	//el color del objeto
 	unsigned int colorLoc = glGetUniformLocation(shaderProgram, "objectColor");
+	//blanco por defecto
 	glUniform3f(colorLoc, 1.0f, 1.0f, 1.0f);
 	//el color de la luz ambiente 
 	unsigned int lightLoc = glGetUniformLocation(shaderProgram, "lightColor");
+	//luz blanca
 	glUniform3f(lightLoc, 1.0f, 1.0f, 1.0f);
-
 	//luz difusa 
 	unsigned int lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
 	glUniform3f(lightPosLoc, (float)luz.x, (float)luz.y, (float)luz.z + ESCALADO_LUZ);
-
-	//luz especular
-	//la posicion del usuario/camara (0,0,10) en nuestro caso
-	unsigned int viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
-
 }
 
 void cargaTextura(unsigned int* textura,const char* ruta) {
@@ -517,7 +455,6 @@ void openGlInit() {
 	//glEnable(GL_CULL_FACE); //ocultacion caras back
 	glCullFace(GL_BACK);
 }
-
 
 int main() {
 	//glfw: initalize and configure
@@ -556,10 +493,11 @@ int main() {
 	dibujaEsfera();
 
 	//Cargamos todas las texturas
-	cargaTextura(&sueloTex, "hierba.jpg");
-	cargaTextura(&gruaTex, "metal_amarillo.jpg");
-	cargaTextura(&articulacionTex, "metal.jpg");
+	cargaTextura(&sueloTex, "../texturas/hierba.jpg");
+	cargaTextura(&gruaTex, "../texturas/metal_amarillo.jpg");
+	cargaTextura(&articulacionTex, "../texturas/metal.jpg");
 
+	//menu de controles
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
 	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ts: Detiene la grua\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n\tr: Resetea la grua a sus posiciones iniciales\n");
 	printf("Primera articulacion:\n\ti: Arriba\n\tk: Abajo\n\tj: Rota izquierda\n\tl: Rota derecha\n");
@@ -586,22 +524,20 @@ int main() {
 		//dibujamos la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glm::mat4 model;
-		model = glm::mat4(); //identity matrix
+		model = glm::mat4();
 		model = dibujaObjeto(base, model);
 		model = dibujaObjeto(articulacion1, model);
 		model = dibujaObjeto(brazo1, model);
 		model = dibujaObjeto(articulacion2, model);
 		model = dibujaObjeto(brazo2, model);
 
+		//recuperamos la matriz del modelo
 		const float* pSource = (const float*)glm::value_ptr(model);
-		double dArray[16] = { 0.0 };
-		for (int i = 0; i < 16; ++i) {
-			dArray[i] = pSource[i];
-		}
-
-		luz.x = (float)dArray[12];
-		luz.y = (float)dArray[13];
-		luz.z = (float)dArray[14];
+		//posicion del brazo
+		luz.x = pSource[12];
+		luz.y = pSource[13];
+		luz.z = pSource[14];
+		//iluminamos
 		iluminacion();
 
 		glBindVertexArray(0);
