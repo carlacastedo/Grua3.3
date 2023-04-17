@@ -34,11 +34,26 @@ void main(){
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 128);
 		vec3 specular = specularStrength * spec * lightColor;
 
-		vec3 result = ((ambient + diffuse + specular) * objectColor)/2;
-		FragColor = vec4(result, 1.0) * texture2D(texture1, TexCoord);		
+		
+		//comprobamos si el objeto tiene textura
+		if(texture2D(texture1, TexCoord)==vec4(0.0,0.0,0.0,1.0)){
+			//si no tiene lo pintamos de su color
+			vec3 result = ((ambient + diffuse + specular) * objectColor)/2;
+			FragColor = vec4(result, 1.0);
+		}else{
+			vec3 result = ((ambient + diffuse + specular) * vec3(1.0, 1.0, 1.0))/2;
+			FragColor = vec4(result, 1.0) * texture2D(texture1, TexCoord);
+		}
 	} else {
-		vec3 result = ((ambient) * objectColor)/2;
-		FragColor = vec4(result, 1.0) * texture2D(texture1, TexCoord);
+		//comprobamos si el objeto tiene textura
+		if(texture2D(texture1, TexCoord)==vec4(0.0,0.0,0.0,1.0)){
+			//si no tiene lo pintamos de su color
+			vec3 result = ((ambient) * objectColor)/2;
+			FragColor = vec4(result, 1.0);
+		}else{
+			vec3 result = ((ambient) * vec3(1.0, 1.0, 1.0))/2;
+			FragColor = vec4(result, 1.0) * texture2D(texture1, TexCoord);
+		}
 	}
 
 }

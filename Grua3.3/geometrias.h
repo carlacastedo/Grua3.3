@@ -17,7 +17,7 @@ float vertices_cuadrado[] = {
 };
 
 //CUBO: 6 caras con 12 triangulos y 36 vertices
-//3 coordenadas de vertices, 3 de normales y 2 de textura
+//3 coordenadas de normales, 2 de textura y 3 de posicion
 float vertices_cubo[] = {
 	//Cara frontal
 	0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.5f, 0.5f,  0.5f,  //0

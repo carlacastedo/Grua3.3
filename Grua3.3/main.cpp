@@ -13,7 +13,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
+//para la carga de texturas
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -38,7 +38,7 @@ GLuint modoCamara = 0;
 
 GLuint shaderProgram;
 
-GLuint VAOEjes;
+//VAOS para crear los objetos
 GLuint VAOCuadrado;
 GLuint VAOCubo;
 GLuint VAOEsfera;
@@ -233,52 +233,6 @@ void dibujaEsfera() {
 	glDeleteBuffers(1, &VBO);
 }
 
-void dibujaEjes() {
-	unsigned int VBO, EBO;
-	// set up vertex data (and buffer(s)) and configure vertex attributes
-	// ------------------------------------------------------------------
-	float vertices[] = {
-		//Vertices          //Colores
-		0.0f, 0.0f, 0.0f,	 1.0f, 1.0f, 1.0f,  // 0
-		.5f, 0.0f, 0.0f,	 1.0f, 0.0f, 0.0f, //x
-		0.0f, .5f, 0.0f,	 0.0f, 1.0f, 0.0f,// y
-		0.0f, .0f, 0.5f,	 0.0f, 0.0f, 1.0f, // z  
-		.5f , .5f, 0.5f,	1.0f, 1.0f, 1.0f // 1,1,1 bueno realmente la mitad
-	};
-	unsigned int indices[] = {  // empieza desde cero
-		0, 1,
-		0, 2,
-		0, 3,
-		0, 4
-	};
-
-	glGenVertexArrays(1, &VAOEjes);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-
-	glBindVertexArray(VAOEjes);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	// position Color
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
-};
-
 void dibujaCubo() {
 	unsigned int VBO;
 	glGenVertexArrays(1, &VAOCubo);
@@ -376,7 +330,7 @@ void iluminacion() {
 	//el color del objeto
 	unsigned int colorLoc = glGetUniformLocation(shaderProgram, "objectColor");
 	//blanco por defecto
-	glUniform3f(colorLoc, 1.0f, 1.0f, 1.0f);
+	glUniform3f(colorLoc, 1.0f, 0.0f, 1.0f);
 	//el color de la luz ambiente 
 	unsigned int lightLoc = glGetUniformLocation(shaderProgram, "lightColor");
 	//luz blanca
@@ -461,7 +415,7 @@ int main() {
 
 	//Cargamos todas las texturas
 	cargaTextura(&sueloTex, "../texturas/hierba.jpg");
-	cargaTextura(&gruaTex, "../texturas/metal_amarillo.jpg");
+	//cargaTextura(&gruaTex, "../texturas/metal_amarillo.jpg");
 	cargaTextura(&articulacionTex, "../texturas/metal.jpg");
 
 	//menu de controles
@@ -471,6 +425,7 @@ int main() {
 	printf("Segunda articulacion:\n\th: Arriba\n\tn: Abajo\n\tb: Rota izquierda\n\tm: Rota derecha\n");
 	// Lazo de la ventana mientras no la cierre
 	// -----------
+	glm::mat4 model;
 	while (!glfwWindowShouldClose(window)){
 		// input
 		// -----
@@ -490,20 +445,18 @@ int main() {
 
 		//dibujamos la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		glm::mat4 model;
+		//glm::mat4 model;
 		model = glm::mat4();
 		model = dibujaObjeto(base, model);
 		model = dibujaObjeto(articulacion1, model);
 		model = dibujaObjeto(brazo1, model);
 		model = dibujaObjeto(articulacion2, model);
 		model = dibujaObjeto(brazo2, model);
-
-		//recuperamos la matriz del modelo
-		const float* pSource = (const float*)glm::value_ptr(model);
-		//posicion del brazo
-		luz.x = pSource[12];
-		luz.y = pSource[13];
-		luz.z = pSource[14];
+	
+		//establecemos la posicion de la luz a la posicion del final del brazo superior
+		luz.x = model[3][0];
+		luz.y = model[3][1];
+		luz.z = model[3][2];
 		//iluminamos
 		iluminacion();
 
@@ -514,11 +467,10 @@ int main() {
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-
+	
 	// optional: de-allocate all resources once they've outlived their purpose:
 	glDeleteVertexArrays(1, &VAOCubo);
 	glDeleteVertexArrays(1, &VAOCuadrado);
-	glDeleteVertexArrays(1, &VAOEjes);
 	glDeleteVertexArrays(1, &VAOEsfera);
 
 	// glfw: terminate, clearing all 
