@@ -415,7 +415,7 @@ int main() {
 
 	//Cargamos todas las texturas
 	cargaTextura(&sueloTex, "../texturas/hierba.jpg");
-	//cargaTextura(&gruaTex, "../texturas/metal_amarillo.jpg");
+	cargaTextura(&gruaTex, "../texturas/metal_amarillo.jpg");
 	cargaTextura(&articulacionTex, "../texturas/metal.jpg");
 
 	//menu de controles
