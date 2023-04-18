@@ -21,6 +21,9 @@
     <ClCompile Include="glad.c">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
+    <ClCompile Include="objeto.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.frag">
@@ -35,6 +38,9 @@
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
     <ClInclude Include="geometrias.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+    <ClInclude Include="objeto.h">
       <Filter>Archivos de encabezado</Filter>
     </ClInclude>
   </ItemGroup>

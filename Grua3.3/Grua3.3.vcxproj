@@ -132,6 +132,7 @@
   <ItemGroup>
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="objeto.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.frag" />
@@ -140,6 +141,7 @@
   <ItemGroup>
     <ClInclude Include="geometrias.h" />
     <ClInclude Include="lecturaShader.h" />
+    <ClInclude Include="objeto.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

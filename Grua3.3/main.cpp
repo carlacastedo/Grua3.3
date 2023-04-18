@@ -2,11 +2,9 @@
 #include <glad.h>
 #include <glfw3.h>
 #include <stdio.h>
-#include <math.h> 
 #include <iostream>
 #include <lecturaShader.h>
 #include "geometrias.h"
-
 
 //transformaciones
 #include <glm/glm.hpp>
@@ -16,9 +14,8 @@
 //para la carga de texturas
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "objeto.h"
 
-//equivalencia a radianes
-#define ARADIANES 0.0174
 #define ESCALADO_CAM 4
 #define ESCALADO_1P 0.5
 #define ESCALADO_3P 1
@@ -26,6 +23,7 @@
 #define ESCALADO_LUZ 1.25
 #define ALTURA_1P 0.4
 #define ALTURA_3P 0.5
+#define LIMITE 2
 
 //ancho y alto de la ventana
 GLuint ANCHO = 800;
@@ -39,37 +37,22 @@ GLuint modoCamara = 0;
 GLuint shaderProgram;
 
 //VAOS para crear los objetos
-GLuint VAOCuadrado;
-GLuint VAOCubo;
-GLuint VAOEsfera;
+GLuint VAOCuadrado = 0;
+GLuint VAOCubo = 0;
+GLuint VAOEsfera = 0;
 //angulos de giro de la camara alejada
 float alfa = 0, beta = 0;
 
-typedef struct {
-	float px, py, pz; //posición inicial
-	float angulo_trans; //angulo giro x
-	float angulo_trans_2; //angulo giro z
-	float sx, sy, sz; //escalado en los dos ejes
-	GLuint *listarender; //VAO
-	GLuint numvertices; //Número de vertices del poligono
-	GLuint* textura; //textura asociada
-} objeto;
+GLuint sueloTex = 0;
+GLuint gruaTex = 0;
+GLuint articulacionTex = 0;
 
-typedef struct {
-	float x, y, z;
-}punto;
-
-GLuint sueloTex;
-GLuint gruaTex;
-GLuint articulacionTex;
-
-objeto base = {0, 0, 0.10, 0, 0, 0.5, 0.2, 0.2, &VAOCubo, 36, &gruaTex};
-objeto articulacion1 = {0, 0, 0.10, 0, 0, 0.07, 0.07, 0.07, &VAOEsfera, 1080, &articulacionTex};
-objeto brazo1 = {0, 0, 0.20, 0, 0, 0.05, 0.05, 0.45, &VAOCubo, 36, &gruaTex};
-objeto articulacion2 = {0, 0, 0.25, 0, 0, 0.04, 0.04, 0.04, &VAOEsfera, 1080, &articulacionTex};
-objeto brazo2 = { 0, 0, 0.15, 0, 0, 0.03, 0.03, 0.25, &VAOCubo, 36, &gruaTex};
-
-punto luz;
+//objetos
+Objeto base(Punto(0, 0, 0.10), 0, 0, Punto(0.5, 0.2, 0.2), VAOCubo, 36, gruaTex);
+Objeto articulacion1(Punto(0, 0, 0.10), 0, 0, Punto(0.07, 0.07, 0.07), VAOEsfera, 1080, articulacionTex);
+Objeto brazo1(Punto(0, 0, 0.20), 0, 0, Punto(0.05, 0.05, 0.45), VAOCubo, 36, gruaTex);
+Objeto articulacion2(Punto(0, 0, 0.25), 0, 0, Punto(0.04, 0.04, 0.04), VAOEsfera, 1080, articulacionTex);
+Objeto brazo2(Punto(0, 0, 0.15), 0, 0, Punto(0.03, 0.03, 0.25), VAOCubo, 36, gruaTex);
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
@@ -84,7 +67,7 @@ void camaraAlejada() {
 	//Cargamos la identidad
 	view = glm::mat4();
 	//colocamos la camara, a donde mira y su orientacion
-	view = glm::lookAt(glm::vec3(ESCALADO_CAM* sin(alfa * ARADIANES) * cos(beta * ARADIANES), ESCALADO_CAM * sin(beta * ARADIANES), ESCALADO_CAM * cos(alfa * ARADIANES) * cos(beta * ARADIANES)), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, cos(beta * ARADIANES), .0f));
+	view = glm::lookAt(glm::vec3(ESCALADO_CAM * glm::sin(glm::radians(alfa)) * glm::cos(glm::radians(beta)), ESCALADO_CAM * glm::sin(glm::radians(beta)), ESCALADO_CAM * glm::cos(glm::radians(alfa)) * glm::cos(glm::radians(beta))), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, glm::cos(glm::radians(beta)), .0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 	//Matriz de proyección
@@ -102,8 +85,8 @@ void terceraPersona(float px, float py, float pz, float angulo) {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
-	view = glm::lookAt(glm::vec3(px - ESCALADO_3P * cos(angulo * ARADIANES), py - ESCALADO_3P * sin(angulo * ARADIANES), pz + ALTURA_3P),
-		glm::vec3(px + ESCALADO_ENFOQUE * cos(angulo * ARADIANES), py + ESCALADO_ENFOQUE * sin(angulo * ARADIANES), pz),
+	view = glm::lookAt(glm::vec3(px - ESCALADO_3P * glm::cos(glm::radians(angulo)), py - ESCALADO_3P * glm::sin(glm::radians(angulo)), pz + ALTURA_3P),
+		glm::vec3(px + ESCALADO_ENFOQUE * glm::cos(glm::radians(angulo)), py + ESCALADO_ENFOQUE * glm::sin(glm::radians(angulo)), pz),
 		glm::vec3(.0f, .0f, 1.0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -122,8 +105,8 @@ void primeraPersona(float px, float py, float pz, float angulo) {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
-	view = glm::lookAt(glm::vec3(px-ESCALADO_1P*cos(angulo*ARADIANES),py-ESCALADO_1P*sin(angulo*ARADIANES), pz + ALTURA_1P),
-		glm::vec3(px + ESCALADO_ENFOQUE * cos(angulo * ARADIANES), py + ESCALADO_ENFOQUE * sin(angulo * ARADIANES), pz),
+	view = glm::lookAt(glm::vec3(px-ESCALADO_1P*glm::cos(glm::radians(angulo)),py-ESCALADO_1P*glm::sin(glm::radians(angulo)), pz + ALTURA_1P),
+		glm::vec3(px + ESCALADO_ENFOQUE * glm::cos(glm::radians(angulo)), py + ESCALADO_ENFOQUE * glm::sin(glm::radians(angulo)), pz),
 		glm::vec3(.0f, .0f, 1.0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -145,11 +128,11 @@ void seleccionaCamara() {
 		break;
 		//camara en primera persona
 	case 1:
-		primeraPersona(base.px, base.py, base.pz, base.angulo_trans);
+		primeraPersona(base.getPosicion().getX(), base.getPosicion().getY(), base.getPosicion().getZ(), base.getAnguloTrans1());
 		break;
 		//camara en tercera persona
 	case 3:
-		terceraPersona(base.px, base.py, base.pz, base.angulo_trans);
+		terceraPersona(base.getPosicion().getX(), base.getPosicion().getY(), base.getPosicion().getZ(), base.getAnguloTrans1());
 		break;
 	default:
 		camaraAlejada();
@@ -158,24 +141,24 @@ void seleccionaCamara() {
 
 //funcion que dibuja el objeto aplicandole las transformaciones previas y las suyas propias, devolviendo una matriz
 //con las transformaciones aplicadas
-glm::mat4 dibujaObjeto(objeto o, glm::mat4 model) {
+glm::mat4 dibujaObjeto(Objeto o, glm::mat4 model) {
 	glm::mat4 modeltemp;
 	unsigned int modelLoc = glGetUniformLocation(shaderProgram, "model");
 	//trasladamos
-	model = glm::translate(model, glm::vec3(o.px, o.py, o.pz));
+	model = glm::translate(model, glm::vec3(o.getPosicion().getX(), o.getPosicion().getY(), o.getPosicion().getZ()));
 	//rotaciones con respecto al eje z
-	model = glm::rotate(model, (float)(o.angulo_trans * ARADIANES), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::rotate(model, (float)(glm::radians(o.getAnguloTrans1())), glm::vec3(0.0f, 0.0f, 1.0f));
 	//rotaciones con respecto al eje y (solo en las articulaciones)
-	model = glm::rotate(model, (float)(o.angulo_trans_2 * ARADIANES), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, (float)(glm::radians(o.getAnguloTrans2())), glm::vec3(0.0f, 1.0f, 0.0f));
 	//guardamos las tranformaciones realizadas en la matriz temporal para que las los siguientes objetos
 	modeltemp = model;
-	model = glm::scale(model, glm::vec3(o.sx, o.sy, o.sz));
-	glBindTexture(GL_TEXTURE_2D, *(o.textura));
+	model = glm::scale(model, glm::vec3(o.getEscalado().getX(), o.getEscalado().getY(), o.getEscalado().getZ()));
+	glBindTexture(GL_TEXTURE_2D, o.getTextura());
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//La cargo
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-	glBindVertexArray(*(o.listarender));
-	glDrawArrays(GL_TRIANGLES, 0, o.numvertices);
+	glBindVertexArray(o.getListarender());
+	glDrawArrays(GL_TRIANGLES, 0, o.getNumvertices());
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//Devolvemos la matriz para usarla en el siguiente fragmento
 	return modeltemp;
@@ -232,9 +215,8 @@ void dibujaSuelo(GLuint shaderProgram) {
 
 	float i, j;
 	float escalasuelo = 1;
-	int limite = 2;
-	for (i = -limite; i <= limite; i += (1 / escalasuelo)) {
-		for (j = -limite; j <= limite; j += (1 / escalasuelo)) {
+	for (i = -LIMITE; i <= LIMITE; i += (1 / escalasuelo)) {
+		for (j = -LIMITE; j <= LIMITE; j += (1 / escalasuelo)) {
 			//Calculo la matriz
 			model = glm::mat4(); //identity matrix
 			//trasladamos para dibujar cada cuadrado
@@ -252,18 +234,7 @@ void dibujaSuelo(GLuint shaderProgram) {
 	}
 }
 
-void actualizaPosicion() {
-	//actualizacion de la posicion de la base con la velocidad
-	base.px += velocidad * cos(base.angulo_trans * ARADIANES);
-	base.py += velocidad * sin(base.angulo_trans * ARADIANES);
-	//Corte al salir del suelo
-	if (base.px >= 2.5 - base.sx / 2.0) base.px = -2.4 + base.sx / 2.0;
-	if (base.py >= 2.5 - base.sx / 2.0) base.py = -2.4 + base.sx / 2.0;
-	if (base.px <= -2.5 + base.sx / 2.0) base.px = 2.5 - base.sx / 2.0;
-	if (base.py <= -2.5 + base.sx / 2.0) base.py = 2.5 - base.sx / 2.0;
-}
-
-void iluminacion() {
+void iluminacion(Punto luz) {
 	//el color del objeto
 	unsigned int colorLoc = glGetUniformLocation(shaderProgram, "objectColor");
 	//blanco por defecto
@@ -274,10 +245,10 @@ void iluminacion() {
 	glUniform3f(lightLoc, 1.0f, 1.0f, 1.0f);
 	//luz difusa 
 	unsigned int lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
-	glUniform3f(lightPosLoc, (float)luz.x, (float)luz.y, (float)luz.z + ESCALADO_LUZ);
+	glUniform3f(lightPosLoc, luz.getX(), luz.getY(), luz.getZ() + ESCALADO_LUZ);
 }
 
-void cargaTextura(unsigned int* textura,const char* ruta) {
+void cargaTextura(unsigned int* textura, const char* ruta) {
 	int width, height, nrChannels;
 	//geneneramos la textura
 	glGenTextures(1, textura);
@@ -310,6 +281,7 @@ void openGlInit() {
 }
 
 int main() {
+	Punto luz;
 	//glfw: initalize and configure
 	//-----------------------------
 	glfwInit();
@@ -318,13 +290,13 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	//Creo la ventana
-
 	GLFWwindow* window = glfwCreateWindow(ANCHO, ALTO, "Grua con OpenGL 3.3", NULL, NULL);
 	if (window == NULL)	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
+
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
@@ -350,6 +322,18 @@ int main() {
 	cargaTextura(&sueloTex, "../texturas/hierba.jpg");
 	cargaTextura(&gruaTex, "../texturas/metal_amarillo.jpg");
 	cargaTextura(&articulacionTex, "../texturas/metal.jpg");
+	//ponemos las listas de render
+	base.setListarender(VAOCubo);
+	articulacion1.setListarender(VAOEsfera);
+	brazo1.setListarender(VAOCubo);
+	articulacion2.setListarender(VAOEsfera);
+	brazo2.setListarender(VAOCubo);
+	//y las texturas
+	base.setTextura(gruaTex);
+	articulacion1.setTextura(articulacionTex);
+	brazo1.setTextura(gruaTex);
+	articulacion2.setTextura(articulacionTex);
+	brazo2.setTextura(gruaTex);
 
 	//menu de controles
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
@@ -374,7 +358,7 @@ int main() {
 
 		//Dibujo del suelo
 		dibujaSuelo(shaderProgram);
-		actualizaPosicion();
+		base.actualizaPosicion(velocidad, LIMITE);
 
 		//dibujamos la grua
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -387,11 +371,11 @@ int main() {
 		model = dibujaObjeto(brazo2, model);
 	
 		//establecemos la posicion de la luz a la posicion del final del brazo superior
-		luz.x = model[3][0];
-		luz.y = model[3][1];
-		luz.z = model[3][2];
+		luz.setX(model[3][0]);
+		luz.setY(model[3][1]);
+		luz.setZ(model[3][2]);
 		//iluminamos
-		iluminacion();
+		iluminacion(luz);
 
 		glBindVertexArray(0);
 
@@ -443,10 +427,10 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 		//MOVIMIENTO DE LA GRUA
 		case 65://Letra A, orienta la base a la izquierda
-			base.angulo_trans += 1;
+			base.setAnguloTrans1(base.getAnguloTrans1() + 1);
 			break;
 		case 68://Letra D, orienta la base a la derecha
-			base.angulo_trans -= 1;
+			base.setAnguloTrans1(base.getAnguloTrans1() - 1);
 			break;
 		case 87://Letra W, aumenta la velocidad
 			velocidad += 0.0001;
@@ -458,13 +442,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 			velocidad = 0;
 			break;
 		case 82://tecla R, reset de la grua a sus posiciones iniciales
-			base.angulo_trans = 0;
-			base.px = 0;
-			base.px = 0;
-			articulacion1.angulo_trans = 0;
-			articulacion1.angulo_trans_2 = 0;
-			articulacion2.angulo_trans = 0;
-			articulacion2.angulo_trans_2 = 0;
+			base.resetear();
+			articulacion1.resetear();
+			articulacion2.resetear();
 			velocidad = 0;
 			alfa = 0;
 			beta = 0;
@@ -472,30 +452,30 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 
 		//MOVIMIENTO DE LA PRIMERA ARTICULACION
 		case 74://Letra J orienta el primer brazo a la izquierda
-			articulacion1.angulo_trans += 1;
+			articulacion1.setAnguloTrans1(articulacion1.getAnguloTrans1() + 1);
 			break;
 		case 76://Letra L orienta el primer brazo a la derecha
-			articulacion1.angulo_trans -= 1;
+			articulacion1.setAnguloTrans1(articulacion1.getAnguloTrans1() - 1);
 			break;
 		case 73://Letra I orienta el primer brazo arriba
-			if (articulacion1.angulo_trans_2 < 65) articulacion1.angulo_trans_2 += 1;
+			if (articulacion1.getAnguloTrans2() < 65) articulacion1.setAnguloTrans2(articulacion1.getAnguloTrans2() + 1);
 			break;
 		case 75://Letra K orienta el primer brazo abajo
-			if (articulacion1.angulo_trans_2 >- 65) articulacion1.angulo_trans_2 -= 1;
+			if (articulacion1.getAnguloTrans2() >- 65) articulacion1.setAnguloTrans2(articulacion1.getAnguloTrans2() - 1);
 			break;
 
 		//MOVIMIENTO DE LA SEGUNDA ARTICULACION
 		case 66://Letra B orienta el segundo brazo a la izquierda
-			articulacion2.angulo_trans += 1;
+			articulacion2.setAnguloTrans1(articulacion2.getAnguloTrans1() + 1);
 			break;
 		case 77://Letra M orienta el segundo brazo a la derecha
-			articulacion2.angulo_trans -= 1;
+			articulacion2.setAnguloTrans1(articulacion2.getAnguloTrans1() - 1);
 			break;
 		case 72://Letra H orienta el segundo brazo arriba
-			if (articulacion2.angulo_trans_2 < 135) articulacion2.angulo_trans_2 += 1;
+			if (articulacion2.getAnguloTrans2() < 135) articulacion2.setAnguloTrans2(articulacion2.getAnguloTrans2() + 1);
 			break;
 		case 78://Letra N orienta el segundo brazo abajo
-			if (articulacion1.angulo_trans_2 > -135) articulacion2.angulo_trans_2 -= 1;
+			if (articulacion2.getAnguloTrans2() > -135) articulacion2.setAnguloTrans2(articulacion2.getAnguloTrans2() - 1);
 			break;
 		//MODOS DE CAMARA
 		case 49://Numero 1, primera persona

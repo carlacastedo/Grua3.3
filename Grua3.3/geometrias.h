@@ -2,8 +2,6 @@
 #include <glad.h>
 #include <glfw3.h>
 #include <stdio.h>
-#include <math.h> 
-#include <iostream>
 
 //CUADRADO: 1 caras con 2 triangulos y 6 vertices
 //3 coordenadas de normales, 2 de textura, 3 de posicion y 3 de color
