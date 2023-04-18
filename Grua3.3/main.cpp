@@ -182,108 +182,45 @@ glm::mat4 dibujaObjeto(objeto o, glm::mat4 model) {
 }
 
 //funcion que crea el VAO en la variable VAO a partir del array de vertices
-void creaVAO(float* vertices, GLuint* VAO) {
-	unsigned int VBO;
+void creaVAO(float* vertices, unsigned int tam, GLuint* VAO, int color) {
+	unsigned int VBO, repeticion = 8;
 	glGenVertexArrays(1, VAO);
 	glGenBuffers(1, &VBO);
 	// bind the Vertex Array Object first.
 	glBindVertexArray(*VAO);
-
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	//Vertices
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-	glEnableVertexAttribArray(0);
-	//Normales
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	//Textura
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-	
+	glBufferData(GL_ARRAY_BUFFER, tam, vertices, GL_STATIC_DRAW);
+	if (color) {
+		//Vertices
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(5 * sizeof(float)));
+		glEnableVertexAttribArray(0);
+		//Normales
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		//Textura
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		//Color
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
+		glEnableVertexAttribArray(3);		
+	}	else {
+		//Vertices
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+		glEnableVertexAttribArray(0);
+		//Normales
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		//Textura
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		//color
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(3);
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+		glBindVertexArray(0);
 	glDeleteBuffers(1, &VBO);
 }
-
-void dibujaEsfera() {
-	unsigned int VBO;
-
-	glGenVertexArrays(1, &VAOEsfera);
-	glGenBuffers(1, &VBO);
-	// bind the Vertex Array Object first.
-	glBindVertexArray(VAOEsfera);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_esfera), vertices_esfera, GL_STATIC_DRAW);
-
-	//Vertices
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-	glEnableVertexAttribArray(0);
-	//Normales
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	//Textura
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glDeleteBuffers(1, &VBO);
-}
-
-void dibujaCubo() {
-	unsigned int VBO;
-	glGenVertexArrays(1, &VAOCubo);
-	glGenBuffers(1, &VBO);
-	// bind the Vertex Array Object first.
-	glBindVertexArray(VAOCubo);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cubo), vertices_cubo, GL_STATIC_DRAW);
-
-	//Vertices
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-	glEnableVertexAttribArray(0);
-	//Normales
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	//Textura
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glDeleteBuffers(1, &VBO);
-};
-
-void dibujaCuadrado() {
-	unsigned int VBO;
-	//vertices del cuadrado
-
-	glGenVertexArrays(1, &VAOCuadrado);
-	glGenBuffers(1, &VBO);
-	// bind the Vertex Array Object first.
-	glBindVertexArray(VAOCuadrado);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices_cuadrado), vertices_cuadrado, GL_STATIC_DRAW);
-
-	//Vertices
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
-	glEnableVertexAttribArray(0);
-	//Normales
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	//Textura
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(2);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-	glDeleteBuffers(1, &VBO);
-};
 
 //funcion de dibujo del suelo
 void dibujaSuelo(GLuint shaderProgram) {
@@ -403,15 +340,11 @@ int main() {
 	//generarShader();
 	shaderProgram = setShaders("shader.vert", "shader.frag");
 	glUseProgram(shaderProgram);
-	//dibujaEjes();
-	/////////////DEBERIA DE FUNCIONAR CON ESTO PERO NO SE POR QUE NO VA///////////////////////////
-	/*creaVAO(vertices_cuadrado, &VAOCuadrado);
-	creaVAO(vertices_esfera, &VAOEsfera);
-	creaVAO(vertices_cubo, &VAOCubo);*/
-	/////////////////////////////////////////////////////////////////////////////////////////////
-	dibujaCuadrado();
-	dibujaCubo();
-	dibujaEsfera();
+
+	//creamos los arrays de vertices
+	creaVAO(vertices_cuadrado, sizeof(vertices_cuadrado), &VAOCuadrado, 1);
+	creaVAO(vertices_esfera, sizeof(vertices_esfera), &VAOEsfera, 0);
+	creaVAO(vertices_cubo, sizeof(vertices_cubo), &VAOCubo, 1);
 
 	//Cargamos todas las texturas
 	cargaTextura(&sueloTex, "../texturas/hierba.jpg");

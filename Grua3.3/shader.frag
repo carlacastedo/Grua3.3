@@ -3,13 +3,14 @@
 in vec3 Normal;
 in vec3 FragPos;
 in vec2 TexCoord;
+in vec3 objectColor;
 
 out vec4 FragColor;
 
 uniform vec3 viewPos;
 uniform vec3 lightPos;
 uniform vec3 lightColor;
-uniform vec3 objectColor;
+
 
 uniform sampler2D texture1;
 
