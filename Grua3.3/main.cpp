@@ -23,7 +23,7 @@
 #define ESCALADO_LUZ 1.25
 #define ALTURA_1P 0.4
 #define ALTURA_3P 0.5
-#define LIMITE 1
+#define LIMITE 
 
 //ancho y alto de la ventana
 GLuint ANCHO = 800;
