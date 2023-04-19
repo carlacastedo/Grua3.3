@@ -101,7 +101,6 @@ void Objeto::setTextura(GLuint* textura) {
 
 void Objeto::actualizaPosicion(float velocidad, float limite){
     limite += 0.5;
-
     //actualizacion de la posicion de la base con la velocidad
     this->setPosicion(Punto(this->getPosicion().getX() + velocidad * glm::cos(glm::radians(this->getAnguloTrans1())),
         this->getPosicion().getY() + velocidad * glm::sin(glm::radians(this->getAnguloTrans1())), this->getPosicion().getZ()));

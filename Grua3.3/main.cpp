@@ -5,6 +5,7 @@
 #include <iostream>
 #include <lecturaShader.h>
 #include "geometrias.h"
+#include <string>
 
 //transformaciones
 #include <glm/glm.hpp>
@@ -23,7 +24,7 @@
 #define ESCALADO_LUZ 1.25
 #define ALTURA_1P 0.4
 #define ALTURA_3P 0.5
-#define LIMITE 
+#define LIMITE 2
 
 //ancho y alto de la ventana
 GLuint ANCHO = 800;
@@ -46,7 +47,10 @@ float alfa = 0, beta = 0;
 GLuint sueloTex;
 GLuint gruaTex;
 GLuint articulacionTex;
+GLuint piscinaTex[16];
+int siguiente = 0;
 
+double anterior = 0.0;
 //objetos
 Objeto base(Punto(0, 0, 0.10), 0, 0, Punto(0.5, 0.2, 0.2), &VAOCubo, 36, &gruaTex);
 Objeto articulacion1(Punto(0, 0, 0.10), 0, 0, Punto(0.07, 0.07, 0.07), &VAOEsfera, 1080, &articulacionTex);
@@ -59,6 +63,19 @@ void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 extern GLuint setShaders(const char* nVertix, const char* nFrag);
 
+void cambiaTextura() {
+	// Obtener el tiempo transcurrido desde que se inició la aplicación
+	double actual = glfwGetTime();
+	// Realizar la actualización de la variable si han transcurrido 60 segundos desde la última actualización
+	if (actual - anterior >= 0.1) {
+		if (siguiente < 15) {
+			siguiente++;
+		}else {
+			siguiente = 0;
+		}
+		anterior = actual;
+	}
+}
 
 void camaraAlejada() {
 	glViewport(0, 0, ANCHO, ALTO);
@@ -214,16 +231,18 @@ void dibujaSuelo(GLuint shaderProgram) {
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	float i, j;
-	float escalasuelo = 1;
-	for (i = -LIMITE; i <= LIMITE; i += (1 / escalasuelo)) {
-		for (j = -LIMITE; j <= LIMITE; j += (1 / escalasuelo)) {
+	for (i = -LIMITE; i <= LIMITE; i++) {
+		for (j = -LIMITE; j <= LIMITE; j++) {
 			//Calculo la matriz
 			model = glm::mat4(); //identity matrix
 			//trasladamos para dibujar cada cuadrado
 			model = glm::translate(model, glm::vec3(i, j, 0.0f));
 			//escalamos
-			model = glm::scale(model, glm::vec3((1 / escalasuelo), (1 / escalasuelo), (1 / escalasuelo)));
-			glBindTexture(GL_TEXTURE_2D, sueloTex);
+			if (i == 0 && j == 1) {
+				glBindTexture(GL_TEXTURE_2D, piscinaTex[siguiente]);
+			}else {
+				glBindTexture(GL_TEXTURE_2D, sueloTex);
+			}
 			//La cargo
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 			//dibujamos el cuadrado
@@ -249,7 +268,7 @@ void iluminacion(Punto luz) {
 }
 
 void cargaTextura(unsigned int* textura, const char* ruta) {
-	int width, height, nrChannels;
+	int width, height, nrChannels, formato;
 	//geneneramos la textura
 	glGenTextures(1, textura);
 	glBindTexture(GL_TEXTURE_2D, *textura);
@@ -259,11 +278,15 @@ void cargaTextura(unsigned int* textura, const char* ruta) {
 	//parametros de escala
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 	//cargamos la imagen
 	unsigned char* imagen = stbi_load(ruta, &width, &height, &nrChannels, 0);
+	if (nrChannels == 3) {
+		formato = GL_RGB;
+	}else {
+		formato = GL_RGBA;
+	}
 	if (imagen) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, imagen);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, formato, GL_UNSIGNED_BYTE, imagen);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	} else {
@@ -278,6 +301,8 @@ void openGlInit() {
 	glEnable(GL_DEPTH_TEST); //z-buffer
 	//glEnable(GL_CULL_FACE); //ocultacion caras back
 	glCullFace(GL_BACK);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 int main() {
@@ -323,6 +348,13 @@ int main() {
 	cargaTextura(&gruaTex, "../texturas/metal_amarillo.jpg");
 	cargaTextura(&articulacionTex, "../texturas/metal.jpg");
 
+	//cargamos las texturas de la piscina
+	std::string ruta;
+	for (int i = 0; i < 16; i++) {
+		ruta = "../texturas/piscina" + std::to_string(i) + ".png";
+		cargaTextura(&piscinaTex[i], ruta.c_str());
+	}
+	
 	//menu de controles
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");
 	printf("Controles de la grua:\nBase:\n\tw: Acelera\n\tx: Frena\n\ts: Detiene la grua\n\ta: Rota a la izquierda\n\td: Rota a la derecha\n\tr: Resetea la grua a sus posiciones iniciales\n");
@@ -343,7 +375,7 @@ int main() {
 		seleccionaCamara();
 		
 		glActiveTexture(GL_TEXTURE0);
-
+		cambiaTextura();
 		//Dibujo del suelo
 		dibujaSuelo(shaderProgram);
 		base.actualizaPosicion(velocidad, LIMITE);
