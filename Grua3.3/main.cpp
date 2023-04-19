@@ -23,7 +23,7 @@
 #define ESCALADO_LUZ 1.25
 #define ALTURA_1P 0.4
 #define ALTURA_3P 0.5
-#define LIMITE 2
+#define LIMITE 1
 
 //ancho y alto de la ventana
 GLuint ANCHO = 800;
@@ -37,22 +37,22 @@ GLuint modoCamara = 0;
 GLuint shaderProgram;
 
 //VAOS para crear los objetos
-GLuint VAOCuadrado = 0;
-GLuint VAOCubo = 0;
-GLuint VAOEsfera = 0;
+GLuint VAOCuadrado;
+GLuint VAOCubo;
+GLuint VAOEsfera;
 //angulos de giro de la camara alejada
 float alfa = 0, beta = 0;
 
-GLuint sueloTex = 0;
-GLuint gruaTex = 0;
-GLuint articulacionTex = 0;
+GLuint sueloTex;
+GLuint gruaTex;
+GLuint articulacionTex;
 
 //objetos
-Objeto base(Punto(0, 0, 0.10), 0, 0, Punto(0.5, 0.2, 0.2), VAOCubo, 36, gruaTex);
-Objeto articulacion1(Punto(0, 0, 0.10), 0, 0, Punto(0.07, 0.07, 0.07), VAOEsfera, 1080, articulacionTex);
-Objeto brazo1(Punto(0, 0, 0.20), 0, 0, Punto(0.05, 0.05, 0.45), VAOCubo, 36, gruaTex);
-Objeto articulacion2(Punto(0, 0, 0.25), 0, 0, Punto(0.04, 0.04, 0.04), VAOEsfera, 1080, articulacionTex);
-Objeto brazo2(Punto(0, 0, 0.15), 0, 0, Punto(0.03, 0.03, 0.25), VAOCubo, 36, gruaTex);
+Objeto base(Punto(0, 0, 0.10), 0, 0, Punto(0.5, 0.2, 0.2), &VAOCubo, 36, &gruaTex);
+Objeto articulacion1(Punto(0, 0, 0.10), 0, 0, Punto(0.07, 0.07, 0.07), &VAOEsfera, 1080, &articulacionTex);
+Objeto brazo1(Punto(0, 0, 0.20), 0, 0, Punto(0.05, 0.05, 0.45), &VAOCubo, 36, &gruaTex);
+Objeto articulacion2(Punto(0, 0, 0.25), 0, 0, Punto(0.04, 0.04, 0.04), &VAOEsfera, 1080, &articulacionTex);
+Objeto brazo2(Punto(0, 0, 0.15), 0, 0, Punto(0.03, 0.03, 0.25), &VAOCubo, 36, &gruaTex);
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
@@ -153,11 +153,11 @@ glm::mat4 dibujaObjeto(Objeto o, glm::mat4 model) {
 	//guardamos las tranformaciones realizadas en la matriz temporal para que las los siguientes objetos
 	modeltemp = model;
 	model = glm::scale(model, glm::vec3(o.getEscalado().getX(), o.getEscalado().getY(), o.getEscalado().getZ()));
-	glBindTexture(GL_TEXTURE_2D, o.getTextura());
+	glBindTexture(GL_TEXTURE_2D, *(o.getTextura()));
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//La cargo
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-	glBindVertexArray(o.getListarender());
+	glBindVertexArray(*(o.getListarender()));
 	glDrawArrays(GL_TRIANGLES, 0, o.getNumvertices());
 	glBindTexture(GL_TEXTURE_2D, 0);
 	//Devolvemos la matriz para usarla en el siguiente fragmento
@@ -322,18 +322,6 @@ int main() {
 	cargaTextura(&sueloTex, "../texturas/hierba.jpg");
 	cargaTextura(&gruaTex, "../texturas/metal_amarillo.jpg");
 	cargaTextura(&articulacionTex, "../texturas/metal.jpg");
-	//ponemos las listas de render
-	base.setListarender(VAOCubo);
-	articulacion1.setListarender(VAOEsfera);
-	brazo1.setListarender(VAOCubo);
-	articulacion2.setListarender(VAOEsfera);
-	brazo2.setListarender(VAOCubo);
-	//y las texturas
-	base.setTextura(gruaTex);
-	articulacion1.setTextura(articulacionTex);
-	brazo1.setTextura(gruaTex);
-	articulacion2.setTextura(articulacionTex);
-	brazo2.setTextura(gruaTex);
 
 	//menu de controles
 	printf("Controles de la camara:\n\t0: Camara alejada\n\t1: Camara en primera persona\n\t3: Camara en tercera persona\n\tFlechas: Mover la camara (solo si esta alejada)\n");

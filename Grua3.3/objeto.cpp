@@ -33,7 +33,7 @@ float Punto::getZ() {
     return this->z;
 }
 
-Objeto::Objeto(Punto posicion, float angulo_trans_1, float angulo_trans_2, Punto escalado, GLuint listarender, GLuint numvertices, GLuint textura){
+Objeto::Objeto(Punto posicion, float angulo_trans_1, float angulo_trans_2, Punto escalado, GLuint* listarender, GLuint numvertices, GLuint* textura){
     this->posicion = posicion;
     this->angulo_trans_1 = angulo_trans_1;
     this->angulo_trans_2 = angulo_trans_2;
@@ -75,7 +75,7 @@ void Objeto::setEscalado(Punto p){
     this->escalado = p;
 }
 
-GLuint Objeto::getListarender() {
+GLuint* Objeto::getListarender() {
     return listarender;
 }
 
@@ -83,11 +83,11 @@ GLuint Objeto::getNumvertices() {
     return numvertices;
 }
 
-GLuint Objeto::getTextura() {
+GLuint* Objeto::getTextura() {
     return textura;
 }
 
-void Objeto::setListarender(GLuint listarender) {
+void Objeto::setListarender(GLuint* listarender) {
     this->listarender = listarender;
 }
 
@@ -95,7 +95,7 @@ void Objeto::setNumvertices(GLuint numvertices) {
     this->numvertices = numvertices;
 }
 
-void Objeto::setTextura(GLuint textura) {
+void Objeto::setTextura(GLuint* textura) {
     this->textura = textura;
 }
 

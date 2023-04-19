@@ -23,11 +23,11 @@ class Objeto {
         float angulo_trans_1; //angulo de rotacion en el eje x
         float angulo_trans_2; //angulo de rotacion en el ejez
         Punto escalado; //escalado en los dos ejes
-        GLuint listarender; //VAO
+        GLuint* listarender; //VAO
         GLuint numvertices; //Número de vertices del poligono
-        GLuint textura; //textura asociada
+        GLuint* textura; //textura asociada
     public:
-        Objeto(Punto posicion, float angulo_trans_1, float angulo_trans_2, Punto escalado, GLuint listarender, GLuint numvertices, GLuint textura); 
+        Objeto(Punto posicion, float angulo_trans_1, float angulo_trans_2, Punto escalado, GLuint* listarender, GLuint numvertices, GLuint* textura); 
         Punto getPosicion();
         void setPosicion(Punto p);
         float getAnguloTrans1();
@@ -36,12 +36,12 @@ class Objeto {
         void setAnguloTrans2(float a2); 
         Punto getEscalado();
         void setEscalado(Punto p);
-        GLuint getListarender();
-        void setListarender(GLuint listarender);
+        GLuint* getListarender();
+        void setListarender(GLuint* listarender);
         GLuint getNumvertices();
         void setNumvertices(GLuint numvertices);
-        GLuint getTextura();
-        void setTextura(GLuint textura);
+        GLuint* getTextura();
+        void setTextura(GLuint* textura);
         void actualizaPosicion(float velocidad, float limite);
         void resetear();
 };
