@@ -237,12 +237,7 @@ void dibujaSuelo(GLuint shaderProgram) {
 			model = glm::mat4(); //identity matrix
 			//trasladamos para dibujar cada cuadrado
 			model = glm::translate(model, glm::vec3(i, j, 0.0f));
-			//escalamos
-			if (i == 0 && j == 1) {
-				glBindTexture(GL_TEXTURE_2D, piscinaTex[siguiente]);
-			}else {
-				glBindTexture(GL_TEXTURE_2D, sueloTex);
-			}
+			glBindTexture(GL_TEXTURE_2D, sueloTex);
 			//La cargo
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 			//dibujamos el cuadrado
@@ -251,6 +246,16 @@ void dibujaSuelo(GLuint shaderProgram) {
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
+	model = glm::mat4(); //identity matrix
+	//trasladamos para dibujar la piscina
+	model = glm::translate(model, glm::vec3(0, 1, 0.001f));
+	glBindTexture(GL_TEXTURE_2D, piscinaTex[siguiente]);
+	//La cargo
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	//dibujamos el cuadrado
+	glBindVertexArray(VAOCuadrado);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void iluminacion(Punto luz) {
