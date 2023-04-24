@@ -286,7 +286,7 @@ void cargaTextura(unsigned int* textura, const char* ruta) {
 		formato = GL_RGBA;
 	}
 	if (imagen) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, formato, GL_UNSIGNED_BYTE, imagen);
+		glTexImage2D(GL_TEXTURE_2D, 0, formato, width, height, 0, formato, GL_UNSIGNED_BYTE, imagen);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	} else {
