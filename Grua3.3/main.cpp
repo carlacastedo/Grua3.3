@@ -58,24 +58,12 @@ Objeto brazo1(Punto(0, 0, 0.20), 0, 0, Punto(0.05, 0.05, 0.45), &VAOCubo, 36, &g
 Objeto articulacion2(Punto(0, 0, 0.25), 0, 0, Punto(0.04, 0.04, 0.04), &VAOEsfera, 1080, &articulacionTex);
 Objeto brazo2(Punto(0, 0, 0.15), 0, 0, Punto(0.03, 0.03, 0.25), &VAOCubo, 36, &gruaTex);
 
+Punto posicionObservador;
+
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 extern GLuint setShaders(const char* nVertix, const char* nFrag);
-
-void cambiaTextura() {
-	// Obtener el tiempo transcurrido desde que se inició la aplicación
-	double actual = glfwGetTime();
-	// Realizar la actualización de la variable si han transcurrido 60 segundos desde la última actualización
-	if (actual - anterior >= 0.1) {
-		if (siguiente < 15) {
-			siguiente++;
-		}else {
-			siguiente = 0;
-		}
-		anterior = actual;
-	}
-}
 
 void camaraAlejada() {
 	glViewport(0, 0, ANCHO, ALTO);
@@ -83,6 +71,10 @@ void camaraAlejada() {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
+	//establecemos la posicion del observador
+	posicionObservador.setX(ESCALADO_CAM * glm::sin(glm::radians(alfa)) * glm::cos(glm::radians(beta)));
+	posicionObservador.setY(ESCALADO_CAM * glm::sin(glm::radians(beta)));
+	posicionObservador.setZ(ESCALADO_CAM * glm::cos(glm::radians(alfa)) * glm::cos(glm::radians(beta)));
 	//colocamos la camara, a donde mira y su orientacion
 	view = glm::lookAt(glm::vec3(ESCALADO_CAM * glm::sin(glm::radians(alfa)) * glm::cos(glm::radians(beta)), ESCALADO_CAM * glm::sin(glm::radians(beta)), ESCALADO_CAM * glm::cos(glm::radians(alfa)) * glm::cos(glm::radians(beta))), glm::vec3(.0f, .0f, .0f), glm::vec3(.0f, glm::cos(glm::radians(beta)), .0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
@@ -102,6 +94,10 @@ void terceraPersona(float px, float py, float pz, float angulo) {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
+	//establecemos la posicion del observador
+	posicionObservador.setX(px - ESCALADO_3P * glm::cos(glm::radians(angulo)));
+	posicionObservador.setY(py - ESCALADO_3P * glm::sin(glm::radians(angulo)));
+	posicionObservador.setZ(pz + ALTURA_3P);
 	view = glm::lookAt(glm::vec3(px - ESCALADO_3P * glm::cos(glm::radians(angulo)), py - ESCALADO_3P * glm::sin(glm::radians(angulo)), pz + ALTURA_3P),
 		glm::vec3(px + ESCALADO_ENFOQUE * glm::cos(glm::radians(angulo)), py + ESCALADO_ENFOQUE * glm::sin(glm::radians(angulo)), pz),
 		glm::vec3(.0f, .0f, 1.0f));
@@ -122,7 +118,11 @@ void primeraPersona(float px, float py, float pz, float angulo) {
 	glm::mat4 view;
 	//Cargamos la identidad
 	view = glm::mat4();
-	view = glm::lookAt(glm::vec3(px-ESCALADO_1P*glm::cos(glm::radians(angulo)),py-ESCALADO_1P*glm::sin(glm::radians(angulo)), pz + ALTURA_1P),
+	//establecemos la posicion del observador
+	posicionObservador.setX(px - ESCALADO_1P * glm::cos(glm::radians(angulo)));
+	posicionObservador.setY(py - ESCALADO_1P * glm::sin(glm::radians(angulo)));
+	posicionObservador.setZ(pz + ALTURA_1P);
+	view = glm::lookAt(glm::vec3(px - ESCALADO_1P * glm::cos(glm::radians(angulo)), py - ESCALADO_1P * glm::sin(glm::radians(angulo)), pz + ALTURA_1P),
 		glm::vec3(px + ESCALADO_ENFOQUE * glm::cos(glm::radians(angulo)), py + ESCALADO_ENFOQUE * glm::sin(glm::radians(angulo)), pz),
 		glm::vec3(.0f, .0f, 1.0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
@@ -246,6 +246,17 @@ void dibujaSuelo(GLuint shaderProgram) {
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 	}
+	double actual = glfwGetTime();
+	// Realizar la actualización de la variable si han transcurrido 60 segundos desde la última actualización
+	if (actual - anterior >= 0.1) {
+		if (siguiente < 15) {
+			siguiente++;
+		}
+		else {
+			siguiente = 0;
+		}
+		anterior = actual;
+	}
 	model = glm::mat4(); //identity matrix
 	//trasladamos para dibujar la piscina
 	model = glm::translate(model, glm::vec3(0, 1, 0.001f));
@@ -259,10 +270,6 @@ void dibujaSuelo(GLuint shaderProgram) {
 }
 
 void iluminacion(Punto luz) {
-	//el color del objeto
-	unsigned int colorLoc = glGetUniformLocation(shaderProgram, "objectColor");
-	//blanco por defecto
-	glUniform3f(colorLoc, 1.0f, 0.0f, 1.0f);
 	//el color de la luz ambiente 
 	unsigned int lightLoc = glGetUniformLocation(shaderProgram, "lightColor");
 	//luz blanca
@@ -270,6 +277,9 @@ void iluminacion(Punto luz) {
 	//luz difusa 
 	unsigned int lightPosLoc = glGetUniformLocation(shaderProgram, "lightPos");
 	glUniform3f(lightPosLoc, luz.getX(), luz.getY(), luz.getZ() + ESCALADO_LUZ);
+	//luz especular 
+	unsigned int viewPosLoc = glGetUniformLocation(shaderProgram, "viewPos");
+	glUniform3f(viewPosLoc, posicionObservador.getX(), posicionObservador.getY(), posicionObservador.getZ() + ESCALADO_LUZ);
 }
 
 void cargaTextura(unsigned int* textura, const char* ruta) {
@@ -373,14 +383,11 @@ int main() {
 		// -----
 		processInput(window);
 
-		// render
-		// ------
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);//Borro el buffer de la ventana
+		glClearColor(0.06f, 0.07f, 0.61f, 1.0f);//Borro el buffer de la ventana
 		glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
 		seleccionaCamara();
 		
 		glActiveTexture(GL_TEXTURE0);
-		cambiaTextura();
 		//Dibujo del suelo
 		dibujaSuelo(shaderProgram);
 		base.actualizaPosicion(velocidad, LIMITE);
