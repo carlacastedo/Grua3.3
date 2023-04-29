@@ -190,6 +190,7 @@ void creaVAO(float* vertices, unsigned int tam, GLuint* VAO, int color) {
 	glBindVertexArray(*VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, tam, vertices, GL_STATIC_DRAW);
+	//comprobamos si el array de vertices incluye el color a parte (en el caso de la esfera se usan las normales)
 	if (color) {
 		//Vertices
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(5 * sizeof(float)));
@@ -203,7 +204,7 @@ void creaVAO(float* vertices, unsigned int tam, GLuint* VAO, int color) {
 		//Color
 		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(float), (void*)(8 * sizeof(float)));
 		glEnableVertexAttribArray(3);		
-	}	else {
+	}else {
 		//Vertices
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
 		glEnableVertexAttribArray(0);
@@ -295,9 +296,11 @@ void cargaTextura(unsigned int* textura, const char* ruta) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//cargamos la imagen
 	unsigned char* imagen = stbi_load(ruta, &width, &height, &nrChannels, 0);
-	if (nrChannels == 3) {
+	if (nrChannels == 1) {
+		formato = GL_RED;
+	}else if (nrChannels == 3) {
 		formato = GL_RGB;
-	}else {
+	} else{
 		formato = GL_RGBA;
 	}
 	if (imagen) {
