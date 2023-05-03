@@ -98,7 +98,7 @@ void terceraPersona(float px, float py, float pz, float angulo) {
 	posicionObservador.setX(px - ESCALADO_3P * glm::cos(glm::radians(angulo)));
 	posicionObservador.setY(py - ESCALADO_3P * glm::sin(glm::radians(angulo)));
 	posicionObservador.setZ(pz + ALTURA_3P);
-	view = glm::lookAt(glm::vec3(px - ESCALADO_3P * glm::cos(glm::radians(angulo)), py - ESCALADO_3P * glm::sin(glm::radians(angulo)), pz + ALTURA_3P),
+	view = glm::lookAt(glm::vec3(posicionObservador.getX(), posicionObservador.getY(), posicionObservador.getZ()),
 		glm::vec3(px + ESCALADO_ENFOQUE * glm::cos(glm::radians(angulo)), py + ESCALADO_ENFOQUE * glm::sin(glm::radians(angulo)), pz),
 		glm::vec3(.0f, .0f, 1.0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
@@ -122,7 +122,7 @@ void primeraPersona(float px, float py, float pz, float angulo) {
 	posicionObservador.setX(px - ESCALADO_1P * glm::cos(glm::radians(angulo)));
 	posicionObservador.setY(py - ESCALADO_1P * glm::sin(glm::radians(angulo)));
 	posicionObservador.setZ(pz + ALTURA_1P);
-	view = glm::lookAt(glm::vec3(px - ESCALADO_1P * glm::cos(glm::radians(angulo)), py - ESCALADO_1P * glm::sin(glm::radians(angulo)), pz + ALTURA_1P),
+	view = glm::lookAt(glm::vec3(posicionObservador.getX(),posicionObservador.getY(),posicionObservador.getZ()),
 		glm::vec3(px + ESCALADO_ENFOQUE * glm::cos(glm::radians(angulo)), py + ESCALADO_ENFOQUE * glm::sin(glm::radians(angulo)), pz),
 		glm::vec3(.0f, .0f, 1.0f));
 	unsigned int viewLoc = glad_glGetUniformLocation(shaderProgram, "view");
